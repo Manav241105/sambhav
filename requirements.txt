@@ -1,0 +1,30 @@
+# Core AutoGen Framework
+autogen-agentchat==0.7.5
+autogen-ext[openai]==0.7.5
+
+# Data Processing
+numpy>=1.24.0,<2.0.0
+pandas>=2.0.0
+
+# Async Support
+asyncio>=3.4.3
+
+# ML Libraries (v4.2)
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+joblib>=1.3.0
+
+# Voice AI (v4.3)
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+websockets>=12.0
+twilio>=8.10.0
+requests>=2.31.0
+groq>=0.4.0
+elevenlabs>=0.2.26
+python-multipart>=0.0.6
+pydub>=0.25.1
+python-dotenv>=1.0.0
+
+# Optional: For enhanced features
+python-dateutil>=2.8.2

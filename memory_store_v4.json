@@ -1,0 +1,241 @@
+{
+  "customer_memories": {
+    "CUST1001": {
+      "customer_id": "CUST1001",
+      "preferences": {
+        "preferred_channel": null,
+        "preferred_contact_time": null,
+        "communication_style": "NEUTRAL"
+      },
+      "behavior_signals": {
+        "PREFERS_WHATSAPP": false,
+        "OFTEN_DECLINES": false,
+        "PRICE_SENSITIVE": false,
+        "RESPONDS_SLOWLY": false,
+        "HIGH_TRUST_CUSTOMER": false,
+        "REQUIRES_FOLLOWUP": false,
+        "ACCEPTS_URGENCY": true,
+        "PREFERS_VOICE_CALL": true
+      },
+      "interaction_history": {
+        "total_interactions": 6,
+        "acceptance_rate": 1.0,
+        "avg_response_time_hours": 9.22657904064534,
+        "declined_count": 0,
+        "rescheduled_count": 0,
+        "last_interaction": "2026-01-21T15:44:13.889633"
+      },
+      "updated_at": "2026-01-21T15:44:29.202867"
+    },
+    "CUST1002": {
+      "customer_id": "CUST1002",
+      "preferences": {
+        "preferred_channel": null,
+        "preferred_contact_time": null,
+        "communication_style": "NEUTRAL"
+      },
+      "behavior_signals": {
+        "PREFERS_WHATSAPP": false,
+        "OFTEN_DECLINES": true,
+        "PRICE_SENSITIVE": false,
+        "RESPONDS_SLOWLY": false,
+        "HIGH_TRUST_CUSTOMER": false,
+        "REQUIRES_FOLLOWUP": false,
+        "ACCEPTS_URGENCY": true,
+        "PREFERS_VOICE_CALL": true
+      },
+      "interaction_history": {
+        "total_interactions": 6,
+        "acceptance_rate": 0.5,
+        "avg_response_time_hours": 18.88885382629127,
+        "declined_count": 3,
+        "rescheduled_count": 0,
+        "last_interaction": "2026-01-21T15:46:18.622314"
+      },
+      "updated_at": "2026-01-21T15:46:34.922843"
+    },
+    "CUST1003": {
+      "customer_id": "CUST1003",
+      "preferences": {
+        "preferred_channel": null,
+        "preferred_contact_time": null,
+        "communication_style": "NEUTRAL"
+      },
+      "behavior_signals": {
+        "PREFERS_WHATSAPP": false,
+        "OFTEN_DECLINES": false,
+        "PRICE_SENSITIVE": false,
+        "RESPONDS_SLOWLY": false,
+        "HIGH_TRUST_CUSTOMER": false,
+        "REQUIRES_FOLLOWUP": true,
+        "ACCEPTS_URGENCY": true,
+        "PREFERS_EMAIL": true
+      },
+      "interaction_history": {
+        "total_interactions": 6,
+        "acceptance_rate": 1.0,
+        "avg_response_time_hours": 12.866542277708096,
+        "declined_count": 0,
+        "rescheduled_count": 3,
+        "last_interaction": "2026-01-21T15:48:22.825718"
+      },
+      "updated_at": "2026-01-21T15:48:38.695485"
+    }
+  },
+  "vehicle_memories": {
+    "VEH001": {
+      "vehicle_id": "VEH001",
+      "maintenance_patterns": {
+        "recurring_issues": [],
+        "avg_maintenance_interval_days": 90,
+        "total_maintenance_events": 0,
+        "proactive_maintenance_rate": 0.0
+      },
+      "reliability_signals": {
+        "HIGH_RELIABILITY": true,
+        "FREQUENT_FAILURES": false,
+        "DEFERRED_MAINTENANCE": false,
+        "WELL_MAINTAINED": true
+      },
+      "component_history": {
+        "brake_pads": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "battery": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "coolant_system": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "tires": {
+          "last_service": null,
+          "failure_count": 0
+        }
+      },
+      "updated_at": "2026-01-21T15:44:29.202867"
+    },
+    "VEH002": {
+      "vehicle_id": "VEH002",
+      "maintenance_patterns": {
+        "recurring_issues": [],
+        "avg_maintenance_interval_days": 90,
+        "total_maintenance_events": 0,
+        "proactive_maintenance_rate": 0.0
+      },
+      "reliability_signals": {
+        "HIGH_RELIABILITY": true,
+        "FREQUENT_FAILURES": false,
+        "DEFERRED_MAINTENANCE": false,
+        "WELL_MAINTAINED": true
+      },
+      "component_history": {
+        "brake_pads": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "battery": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "coolant_system": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "tires": {
+          "last_service": null,
+          "failure_count": 0
+        }
+      },
+      "updated_at": "2026-01-21T15:46:34.922843"
+    },
+    "VEH003": {
+      "vehicle_id": "VEH003",
+      "maintenance_patterns": {
+        "recurring_issues": [],
+        "avg_maintenance_interval_days": 90,
+        "total_maintenance_events": 0,
+        "proactive_maintenance_rate": 0.0
+      },
+      "reliability_signals": {
+        "HIGH_RELIABILITY": true,
+        "FREQUENT_FAILURES": false,
+        "DEFERRED_MAINTENANCE": false,
+        "WELL_MAINTAINED": true
+      },
+      "component_history": {
+        "brake_pads": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "battery": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "coolant_system": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "tires": {
+          "last_service": null,
+          "failure_count": 0
+        }
+      },
+      "updated_at": "2026-01-21T15:48:38.695485"
+    }
+  },
+  "communication_logs": {
+    "VEH001_CUST1001": {
+      "tenant_id": "VEH001",
+      "customer_id": "CUST1001",
+      "communications": [
+        {
+          "timestamp": "2026-01-21T15:44:13.888621",
+          "channel": "VOICE_CALL",
+          "direction": "OUTBOUND",
+          "message": "Hi Rajesh, this is [Your Name] from our maintenance team. We've received a notification that your Tata Punch needs attention to its brake pads. Can we schedule a call to discuss the details and get yo",
+          "status": "SENT",
+          "message_id": "305b92807440"
+        }
+      ],
+      "total_communications": 1
+    },
+    "VEH002_CUST1002": {
+      "tenant_id": "VEH002",
+      "customer_id": "CUST1002",
+      "communications": [
+        {
+          "timestamp": "2026-01-21T15:46:18.622314",
+          "channel": "VOICE_CALL",
+          "direction": "OUTBOUND",
+          "message": "Hi Priya, this is [Your Name] from our maintenance team. We've received a notification that your Tata Safari needs attention to its brake pads. Can we schedule a call to discuss the details and get yo",
+          "status": "SENT",
+          "message_id": "757726fd105e"
+        }
+      ],
+      "total_communications": 1
+    },
+    "VEH003_CUST1003": {
+      "tenant_id": "VEH003",
+      "customer_id": "CUST1003",
+      "communications": [
+        {
+          "timestamp": "2026-01-21T15:48:22.825718",
+          "channel": "EMAIL",
+          "direction": "OUTBOUND",
+          "message": "Hi Amit, this is [Your Name] from our maintenance team. We've received a notification that your Mahindra XUV300 needs attention to its brake pads. Our records show that the issue has a moderate failur",
+          "status": "SENT",
+          "message_id": "96bfeb701592"
+        }
+      ],
+      "total_communications": 1
+    }
+  },
+  "saved_at": "2026-01-21T15:48:40.714701"
+}
+
+
+
+

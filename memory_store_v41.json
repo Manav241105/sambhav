@@ -1,0 +1,192 @@
+{
+  "customer_memories": {
+    "CUST001": {
+      "customer_id": "CUST001",
+      "preferences": {
+        "preferred_channel": "VOICE_CALL",
+        "preferred_contact_time": null,
+        "communication_style": "NEUTRAL"
+      },
+      "behavior_signals": {
+        "PREFERS_WHATSAPP": false,
+        "OFTEN_DECLINES": false,
+        "PRICE_SENSITIVE": false,
+        "RESPONDS_SLOWLY": false,
+        "HIGH_TRUST_CUSTOMER": true,
+        "REQUIRES_FOLLOWUP": false,
+        "ACCEPTS_URGENCY": true,
+        "PREFERS_VOICE_CALL": true
+      },
+      "interaction_history": {
+        "total_interactions": 0,
+        "acceptance_rate": 1.0,
+        "avg_response_time_hours": 24.0,
+        "declined_count": 0,
+        "rescheduled_count": 0,
+        "last_interaction": null
+      },
+      "updated_at": "2026-01-29T14:19:44.857166"
+    },
+    "CUST002": {
+      "customer_id": "CUST002",
+      "preferences": {
+        "preferred_channel": "VOICE_CALL",
+        "preferred_contact_time": null,
+        "communication_style": "NEUTRAL"
+      },
+      "behavior_signals": {
+        "PREFERS_WHATSAPP": false,
+        "OFTEN_DECLINES": false,
+        "PRICE_SENSITIVE": false,
+        "RESPONDS_SLOWLY": true,
+        "HIGH_TRUST_CUSTOMER": true,
+        "REQUIRES_FOLLOWUP": false,
+        "ACCEPTS_URGENCY": true,
+        "PREFERS_VOICE_CALL": true
+      },
+      "interaction_history": {
+        "total_interactions": 0,
+        "acceptance_rate": 1.0,
+        "avg_response_time_hours": 24.0,
+        "declined_count": 0,
+        "rescheduled_count": 0,
+        "last_interaction": null
+      },
+      "updated_at": "2026-01-29T14:19:44.857166"
+    },
+    "CUST003": {
+      "customer_id": "CUST003",
+      "preferences": {
+        "preferred_channel": "VOICE_CALL",
+        "preferred_contact_time": null,
+        "communication_style": "NEUTRAL"
+      },
+      "behavior_signals": {
+        "PREFERS_WHATSAPP": false,
+        "OFTEN_DECLINES": false,
+        "PRICE_SENSITIVE": false,
+        "RESPONDS_SLOWLY": false,
+        "HIGH_TRUST_CUSTOMER": false,
+        "REQUIRES_FOLLOWUP": false,
+        "ACCEPTS_URGENCY": true,
+        "PREFERS_EMAIL": true,
+        "PREFERS_VOICE_CALL": true
+      },
+      "interaction_history": {
+        "total_interactions": 0,
+        "acceptance_rate": 1.0,
+        "avg_response_time_hours": 24.0,
+        "declined_count": 0,
+        "rescheduled_count": 0,
+        "last_interaction": null
+      },
+      "updated_at": "2026-01-29T14:19:44.857166"
+    }
+  },
+  "vehicle_memories": {
+    "VEH001": {
+      "vehicle_id": "VEH001",
+      "maintenance_patterns": {
+        "recurring_issues": [],
+        "avg_maintenance_interval_days": 90,
+        "total_maintenance_events": 0,
+        "proactive_maintenance_rate": 0.0
+      },
+      "reliability_signals": {
+        "HIGH_RELIABILITY": true,
+        "FREQUENT_FAILURES": false,
+        "DEFERRED_MAINTENANCE": false,
+        "WELL_MAINTAINED": true
+      },
+      "component_history": {
+        "brake_pads": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "battery": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "coolant_system": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "tires": {
+          "last_service": null,
+          "failure_count": 0
+        }
+      },
+      "updated_at": "2026-01-29T14:19:44.857166"
+    },
+    "VEH002": {
+      "vehicle_id": "VEH002",
+      "maintenance_patterns": {
+        "recurring_issues": [],
+        "avg_maintenance_interval_days": 90,
+        "total_maintenance_events": 0,
+        "proactive_maintenance_rate": 0.0
+      },
+      "reliability_signals": {
+        "HIGH_RELIABILITY": true,
+        "FREQUENT_FAILURES": false,
+        "DEFERRED_MAINTENANCE": false,
+        "WELL_MAINTAINED": true
+      },
+      "component_history": {
+        "brake_pads": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "battery": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "coolant_system": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "tires": {
+          "last_service": null,
+          "failure_count": 0
+        }
+      },
+      "updated_at": "2026-01-29T14:19:44.857166"
+    },
+    "VEH003": {
+      "vehicle_id": "VEH003",
+      "maintenance_patterns": {
+        "recurring_issues": [],
+        "avg_maintenance_interval_days": 90,
+        "total_maintenance_events": 0,
+        "proactive_maintenance_rate": 0.0
+      },
+      "reliability_signals": {
+        "HIGH_RELIABILITY": true,
+        "FREQUENT_FAILURES": false,
+        "DEFERRED_MAINTENANCE": false,
+        "WELL_MAINTAINED": true
+      },
+      "component_history": {
+        "brake_pads": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "battery": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "coolant_system": {
+          "last_service": null,
+          "failure_count": 0
+        },
+        "tires": {
+          "last_service": null,
+          "failure_count": 0
+        }
+      },
+      "updated_at": "2026-01-29T14:19:44.857166"
+    }
+  },
+  "communication_logs": {},
+  "saved_at": "2026-01-29T14:21:37.900692"
+}
