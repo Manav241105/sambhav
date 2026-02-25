@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'framer-motion';
 import { Gauge, Wrench, Clock, ChevronRight } from 'lucide-react';
 
@@ -92,12 +92,12 @@ export default function VehicleCard({ vehicle, onClick, selected = false }) {
       className={`
         relative group p-5 rounded-3xl border cursor-pointer transition-colors
         ${selected
-          ? 'border-[#caff42] bg-[#caff42]/5 dark:bg-[#caff42]/5 shadow-lg shadow-[#caff42]/10'
+          ? 'border-[#6366f1] bg-[#6366f1]/5 dark:bg-[#6366f1]/5 shadow-lg shadow-[#6366f1]/10'
           : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-white/5 hover:border-gray-300 dark:hover:border-gray-600'}
       `}
     >
       {/* Glow on hover */}
-      <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#caff42] to-transparent opacity-0 group-hover:opacity-[0.06] blur-xl transition-opacity pointer-events-none" />
+      <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#6366f1] to-transparent opacity-0 group-hover:opacity-[0.06] blur-xl transition-opacity pointer-events-none" />
 
       {/* Header: ID + priority badge */}
       <div className="flex items-center justify-between mb-4">

@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -42,8 +42,8 @@
 
 .bay-calendar-wrapper .fc .fc-button-active,
 .bay-calendar-wrapper .fc .fc-button:hover {
-  background: #caff42;
-  border-color: #caff42;
+  background: #6366f1;
+  border-color: #6366f1;
   color: #0b0f19;
 }
 
@@ -64,10 +64,10 @@
 }
 
 .bay-calendar-wrapper .fc .fc-now-indicator-line {
-  border-color: #caff42;
+  border-color: #6366f1;
   border-width: 2px;
 }
 
 .bay-calendar-wrapper .fc .fc-now-indicator-arrow {
-  border-color: #caff42;
+  border-color: #6366f1;
 }

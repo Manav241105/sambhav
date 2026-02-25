@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShieldCheck, BarChart3, Settings2, ArrowLeft } from 'lucide-react';
@@ -59,7 +59,7 @@ export default function Login() {
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-[#f4f5f0] dark:bg-[#0b0f19] transition-colors overflow-hidden">
       {/* Subtle glow */}
-      <div className="absolute w-[500px] h-[500px] rounded-full bg-[#caff42] opacity-10 blur-[160px] -top-40 -left-40 pointer-events-none" />
+      <div className="absolute w-[500px] h-[500px] rounded-full bg-[#6366f1] opacity-10 blur-[160px] -top-40 -left-40 pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 40 }}
@@ -76,7 +76,7 @@ export default function Login() {
         </button>
 
         <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">
-          Sign in to <span className="text-[#caff42]">AutoPredict</span>
+          Sign in to <span className="text-[#6366f1]">AutoPredict</span>
         </h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Select your role, then log in to access your dashboard.
@@ -96,12 +96,12 @@ export default function Login() {
                 onClick={() => { setSelected(role); setError(''); }}
                 className={`flex flex-col items-center gap-2 p-4 border rounded-2xl transition-colors cursor-pointer ${
                   active
-                    ? 'border-[#caff42] bg-[#caff42]/10 dark:bg-[#caff42]/5'
+                    ? 'border-[#6366f1] bg-[#6366f1]/10 dark:bg-[#6366f1]/5'
                     : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
                 }`}
               >
-                <Icon size={22} className={active ? 'text-[#caff42]' : 'text-gray-400'} />
-                <span className={`text-xs font-semibold ${active ? 'text-[#caff42]' : 'text-gray-600 dark:text-gray-300'}`}>
+                <Icon size={22} className={active ? 'text-[#6366f1]' : 'text-gray-400'} />
+                <span className={`text-xs font-semibold ${active ? 'text-[#6366f1]' : 'text-gray-600 dark:text-gray-300'}`}>
                   {role.label}
                 </span>
               </motion.button>
@@ -127,7 +127,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@autopredict.io"
-              className="w-full px-4 py-2.5 text-sm bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#caff42]/50 transition"
+              className="w-full px-4 py-2.5 text-sm bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#6366f1]/50 transition"
             />
           </div>
           <div>
@@ -137,7 +137,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-2.5 text-sm bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#caff42]/50 transition"
+              className="w-full px-4 py-2.5 text-sm bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#6366f1]/50 transition"
             />
           </div>
 
@@ -152,7 +152,7 @@ export default function Login() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
             transition={spring}
-            className="w-full py-3 text-sm font-bold text-[#0b0f19] transition-colors bg-[#caff42] rounded-xl hover:brightness-110"
+            className="w-full py-3 text-sm font-bold text-[#0b0f19] transition-colors bg-[#6366f1] rounded-xl hover:brightness-110"
           >
             Sign In
           </motion.button>

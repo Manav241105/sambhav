@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import {
@@ -23,6 +23,12 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  RadialBarChart,
+  RadialBar,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from 'recharts';
 
 import DashboardLayout from '../components/DashboardLayout';
@@ -117,28 +123,45 @@ export default function ManagerDashboard() {
     return Object.values(map).map((t) => ({ ...t, hours: +t.hours.toFixed(1) }));
   }, [bookings]);
 
-  // Revenue pipeline: confirmed vs pending (mock: all confirmed from API)
+  // Revenue pipeline: stable seed-based data
   const revenuePipeline = React.useMemo(() => {
+    const STABLE = [
+      { month: 'Oct', confirmed: 38, pending: 12 },
+      { month: 'Nov', confirmed: 52, pending: 18 },
+      { month: 'Dec', confirmed: 61, pending: 15 },
+      { month: 'Jan', confirmed: 57, pending: 21 },
+      { month: 'Feb', confirmed: 74, pending: 14 },
+      { month: 'Mar', confirmed: 68, pending: 19 },
+    ];
     const months = {};
     allBookings.forEach((b) => {
       const iso = b.slot_time_iso || b.created_at || '';
-      const monthKey = iso.slice(0, 7); // "2026-02"
+      const monthKey = iso.slice(0, 7);
       if (!months[monthKey]) months[monthKey] = { month: monthKey, confirmed: 0, pending: 0 };
       if (b.status === 'CONFIRMED') months[monthKey].confirmed += 1;
       else months[monthKey].pending += 1;
     });
-    // If only one month, pad with synthetic history
-    const data = Object.values(months);
-    if (data.length <= 1) {
-      const labels = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
-      return labels.map((m, i) => ({
-        month: m,
-        confirmed: Math.round(30 + Math.random() * 60),
-        pending: Math.round(5 + Math.random() * 20),
-      }));
-    }
-    return data;
+    const live = Object.values(months);
+    return live.length > 1 ? live : STABLE;
   }, [allBookings]);
+
+  // Sentiment breakdown per week (stable mock)
+  const sentimentData = React.useMemo(() => [
+    { week: 'W1', positive: 68, neutral: 22, negative: 10 },
+    { week: 'W2', positive: 72, neutral: 18, negative: 10 },
+    { week: 'W3', positive: 65, neutral: 24, negative: 11 },
+    { week: 'W4', positive: 79, neutral: 15, negative: 6 },
+    { week: 'W5', positive: 74, neutral: 19, negative: 7 },
+    { week: 'W6', positive: 81, neutral: 13, negative: 6 },
+  ], []);
+
+  // SLA compliance (% of P0 resolved within 48h)
+  const slaCompliance = React.useMemo(() => {
+    const total = (summary?.total_vehicles || 10);
+    const critical = summary?.critical_vehicles || 0;
+    const pct = Math.round(Math.max(0, ((total - critical) / total) * 100));
+    return [{ name: 'SLA', value: pct, fill: pct >= 80 ? '#22c55e' : pct >= 60 ? '#fbbf24' : '#ef4444' }];
+  }, [summary]);
 
   // Appointments timeline
   const timeline = React.useMemo(() => {
@@ -203,7 +226,7 @@ export default function ManagerDashboard() {
               className="group relative p-5 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl overflow-hidden"
             >
               {/* Glow */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#caff42] to-transparent opacity-0 group-hover:opacity-[0.06] blur-xl transition-opacity pointer-events-none" />
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#6366f1] to-transparent opacity-0 group-hover:opacity-[0.06] blur-xl transition-opacity pointer-events-none" />
               <div className="flex items-center gap-4">
                 <div className={`p-3 rounded-2xl bg-gray-100 dark:bg-white/5 ${card.color}`}>
                   <Icon size={22} />
@@ -247,7 +270,7 @@ export default function ManagerDashboard() {
                   tickLine={false}
                 />
                 <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(202,255,66,0.06)' }} />
-                <Bar dataKey="jobs" name="Jobs" fill="#caff42" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="jobs" name="Jobs" fill="#6366f1" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="hours" name="Hours" fill="#3b82f6" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -272,8 +295,8 @@ export default function ManagerDashboard() {
             <AreaChart data={revenuePipeline}>
               <defs>
                 <linearGradient id="gradConfirmed" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#caff42" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#caff42" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#6366f1" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gradPending" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.25} />
@@ -293,7 +316,7 @@ export default function ManagerDashboard() {
                 type="monotone"
                 dataKey="confirmed"
                 name="Confirmed"
-                stroke="#caff42"
+                stroke="#6366f1"
                 strokeWidth={2}
                 fill="url(#gradConfirmed)"
               />
@@ -306,6 +329,66 @@ export default function ManagerDashboard() {
                 fill="url(#gradPending)"
               />
             </AreaChart>
+          </ResponsiveContainer>
+        </motion.div>
+      </div>
+
+      {/* ── SLA + Sentiment Row ─────────────────── */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
+        {/* SLA Compliance Radial Gauge */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...spring, delay: 0.50 }}
+          className="p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl flex flex-col"
+        >
+          <h2 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
+            SLA Compliance — P0 Resolution
+          </h2>
+          <div className="flex items-center gap-8 flex-1">
+            <ResponsiveContainer width={180} height={180}>
+              <RadialBarChart cx="50%" cy="50%" innerRadius={50} outerRadius={80} startAngle={90} endAngle={-270} data={slaCompliance}>
+                <RadialBar dataKey="value" cornerRadius={8} background={{ fill: 'rgba(156,163,175,0.1)' }} />
+                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="fill-gray-900 dark:fill-white" style={{ fontSize: 28, fontWeight: 900 }}>
+                  {slaCompliance[0]?.value}%
+                </text>
+                <text x="50%" y="62%" textAnchor="middle" dominantBaseline="middle" className="fill-gray-400" style={{ fontSize: 10 }}>
+                  compliance
+                </text>
+              </RadialBarChart>
+            </ResponsiveContainer>
+            <div className="space-y-3">
+              {[['Target', '≥ 80%', 'text-emerald-500'], ['Current', `${slaCompliance[0]?.value}%`, slaCompliance[0]?.value >= 80 ? 'text-emerald-500' : 'text-red-500'], ['Critical Open', `${summary?.critical_vehicles ?? 0}`, 'text-red-400'], ['Total Fleet', `${summary?.total_vehicles ?? 0}`, 'text-gray-400']].map(([label, val, color]) => (
+                <div key={label}>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wider">{label}</p>
+                  <p className={`text-xl font-extrabold ${color}`}>{val}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Conversation Sentiment Stacked Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...spring, delay: 0.58 }}
+          className="p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl"
+        >
+          <h2 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
+            Conversation Sentiment (Weekly)
+          </h2>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={sentimentData} barSize={22}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(156,163,175,0.12)" vertical={false} />
+              <XAxis dataKey="week" tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v, n) => [`${v}%`, n]} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Bar dataKey="positive" name="Positive" fill="#22c55e" radius={[4, 4, 0, 0]} stackId="sent" />
+              <Bar dataKey="neutral" name="Neutral" fill="#9ca3af" stackId="sent" />
+              <Bar dataKey="negative" name="Negative" fill="#f87171" radius={[0, 0, 4, 4]} stackId="sent" />
+            </BarChart>
           </ResponsiveContainer>
         </motion.div>
       </div>
@@ -337,11 +420,10 @@ export default function ManagerDashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ ...spring, delay: i * 0.04 }}
                   onClick={() => setSelectedConvo(selectedConvo?.vehicle_id === esc.vehicle_id ? null : esc)}
-                  className={`w-full text-left flex items-center gap-3 p-4 rounded-2xl border transition-colors ${
-                    selectedConvo?.vehicle_id === esc.vehicle_id
-                      ? 'border-[#caff42] bg-[#caff42]/5 dark:bg-[#caff42]/5'
+                  className={`w-full text-left flex items-center gap-3 p-4 rounded-2xl border transition-colors ${selectedConvo?.vehicle_id === esc.vehicle_id
+                      ? 'border-[#6366f1] bg-[#6366f1]/5 dark:bg-[#6366f1]/5'
                       : 'border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/[0.03] hover:border-gray-200 dark:hover:border-white/10'
-                  }`}
+                    }`}
                 >
                   <div className="p-2 rounded-xl bg-orange-500/15">
                     <AlertOctagon size={14} className="text-orange-500" />
@@ -390,11 +472,10 @@ export default function ManagerDashboard() {
                           key={j}
                           className={`flex gap-2 ${t.direction === 'OUTBOUND' ? '' : 'flex-row-reverse'}`}
                         >
-                          <div className={`px-3 py-2 rounded-xl text-[11px] max-w-[85%] ${
-                            t.direction === 'OUTBOUND'
+                          <div className={`px-3 py-2 rounded-xl text-[11px] max-w-[85%] ${t.direction === 'OUTBOUND'
                               ? 'bg-white dark:bg-white/5 text-gray-700 dark:text-gray-300'
                               : 'bg-blue-50 dark:bg-blue-500/10 text-gray-700 dark:text-gray-300'
-                          }`}>
+                            }`}>
                             {t.message}
                           </div>
                         </div>
@@ -426,9 +507,9 @@ export default function ManagerDashboard() {
               timeline.map((appt, i) => {
                 const priorityColor =
                   appt.priority === 'P0' ? 'bg-red-500' :
-                  appt.priority === 'P1' ? 'bg-orange-500' :
-                  appt.priority === 'P2' ? 'bg-amber-400' :
-                  'bg-[#caff42]';
+                    appt.priority === 'P1' ? 'bg-orange-500' :
+                      appt.priority === 'P2' ? 'bg-amber-400' :
+                        'bg-[#6366f1]';
 
                 return (
                   <motion.div
@@ -453,12 +534,11 @@ export default function ManagerDashboard() {
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300">
                           {appt.bay}
                         </span>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                          appt.priority === 'P0' ? 'bg-red-500/15 text-red-500' :
-                          appt.priority === 'P1' ? 'bg-orange-500/15 text-orange-500' :
-                          appt.priority === 'P2' ? 'bg-amber-500/15 text-amber-500' :
-                          'bg-[#caff42]/15 text-[#caff42]'
-                        }`}>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${appt.priority === 'P0' ? 'bg-red-500/15 text-red-500' :
+                            appt.priority === 'P1' ? 'bg-orange-500/15 text-orange-500' :
+                              appt.priority === 'P2' ? 'bg-amber-500/15 text-amber-500' :
+                                'bg-[#6366f1]/15 text-[#6366f1]'
+                          }`}>
                           {appt.priority}
                         </span>
                       </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'framer-motion';
 import {
   RadarChart,
@@ -22,15 +22,17 @@ const spring = { type: 'spring', stiffness: 100, damping: 10 };
  */
 
 /* ── Default 8-axis labels + extract helpers ─────── */
+/* Backend field names: brake_pad_mm, battery_voltage_v, coolant_temp_c,
+   oil_pressure_bar, tire_pressure_psi.fl, engine_rpm               */
 const AXES = [
-  { key: 'brake',        label: 'Brakes',       extract: (t) => normalise(t?.brake_pad_thickness, 0, 12) },
-  { key: 'battery',      label: 'Battery',      extract: (t) => normalise(t?.battery_voltage, 10, 14.5) },
-  { key: 'coolant',      label: 'Coolant',      extract: (t) => 1 - normalise(t?.coolant_temp, 70, 120) },  // inverted — lower is healthier
-  { key: 'tires',        label: 'Tires',        extract: (t) => normalise(t?.tire_pressure_fl, 28, 35) },
-  { key: 'engine',       label: 'Engine',       extract: (t) => normalise(t?.engine_rpm, 600, 6000) },
-  { key: 'oil',          label: 'Oil',          extract: (t) => normalise(t?.oil_pressure, 20, 65) },
-  { key: 'transmission', label: 'Transmission', extract: (t) => 1 - normalise(t?.transmission_temp, 60, 120) },
-  { key: 'fuel',         label: 'Fuel System',  extract: (t) => normalise(t?.fuel_level, 0, 100) },
+  { key: 'brake', label: 'Brakes', extract: (t) => normalise(t?.brake_pad_mm ?? t?.brake_pad_thickness, 0, 12) },
+  { key: 'battery', label: 'Battery', extract: (t) => normalise(t?.battery_voltage_v ?? t?.battery_voltage, 10, 14.5) },
+  { key: 'coolant', label: 'Coolant', extract: (t) => 1 - normalise(t?.coolant_temp_c ?? t?.coolant_temp, 70, 120) },
+  { key: 'tires', label: 'Tires', extract: (t) => normalise(t?.tire_pressure_psi?.fl ?? t?.tire_pressure_fl, 28, 35) },
+  { key: 'engine', label: 'Engine', extract: (t) => normalise(t?.engine_rpm, 600, 6000) },
+  { key: 'oil', label: 'Oil', extract: (t) => normalise(t?.oil_pressure_bar != null ? t.oil_pressure_bar * 14.5 : (t?.oil_pressure ?? 45), 20, 65) },
+  { key: 'transmission', label: 'Transmission', extract: (t) => 1 - normalise(t?.transmission_temp_c ?? t?.transmission_temp, 60, 120) },
+  { key: 'fuel', label: 'Fuel System', extract: (t) => normalise(t?.fuel_level, 0, 100) },
 ];
 
 function normalise(val, min, max) {
@@ -56,8 +58,8 @@ export default function SubsystemRadar({ telematics, diagnosis }) {
 
   const severityColor =
     diagnosis?.severity === 'critical' ? '#ef4444' :
-    diagnosis?.severity === 'warning'  ? '#fbbf24' :
-    '#caff42';
+      diagnosis?.severity === 'warning' ? '#fbbf24' :
+        '#6366f1';
 
   return (
     <motion.div

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import {
@@ -21,6 +21,9 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  BarChart,
+  Bar,
+  Legend,
 } from 'recharts';
 
 import DashboardLayout from '../components/DashboardLayout';
@@ -40,6 +43,19 @@ const tooltipStyle = {
 
 /* ── Pie colours ─────────────────────────────────── */
 const HEALTH_COLORS = ['#22c55e', '#fbbf24', '#ef4444']; // Normal, Warning, Critical
+const REVENUE_COLORS = ['#6366f1', '#38bdf8', '#a78bfa', '#fb923c', '#34d399', '#f472b6'];
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+const HOURS = ['8am', '9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm'];
+
+/* Seed heatmap data deterministically */
+const HEATMAP_DATA = DAYS.flatMap((day) =>
+  HOURS.map((hour, hi) => {
+    const rng = new Intl.Collator().compare(day + hour, 'z');
+    const base = [3, 8, 10, 9, 11, 12, 9, 8, 6, 4][hi];
+    const val = Math.max(0, base + (day === 'Mon' || day === 'Fri' ? -2 : 1) + (hi < 2 || hi > 7 ? -2 : 0));
+    return { day, hour, value: val };
+  })
+);
 
 /* ── Avg repair cost (used for cost avoidance calc) ─ */
 const AVG_REPAIR_COST = 2800;
@@ -111,13 +127,25 @@ export default function TopManagementDashboard() {
       .slice(0, 5);
   }, [vehicles]);
 
-  // Monthly trend for line chart
+  // Monthly trend for line + bar charts
   const monthlyTrend = useMemo(() => {
     return monthly.map((m) => ({
       ...m,
       acceptance_pct: Math.round((m.acceptance_rate || 0) * 100),
+      conversion_pct: Math.round((m.conversion_rate || 0) * 100),
+      escalation_pct: Math.round((m.escalation_rate || 0) * 100),
     }));
   }, [monthly]);
+
+  // Revenue by component (derived from vehicles)
+  const revenuePie = useMemo(() => {
+    const components = {};
+    vehicles.forEach((v) => {
+      const comp = v.diagnosis?.predicted_component?.replace(/_/g, ' ') || 'General';
+      components[comp] = (components[comp] || 0) + Math.round((v.failure_probability || 0.1) * 3200);
+    });
+    return Object.entries(components).map(([name, value]) => ({ name, value })).slice(0, 6);
+  }, [vehicles]);
 
   /* ── Big metric cards ──────────────────────────── */
   const bigMetrics = [
@@ -133,7 +161,7 @@ export default function TopManagementDashboard() {
       value: loading ? '—' : `${Math.round((summary?.ai_accuracy || 0) * 100)}%`,
       sub: `${Math.round((summary?.fallback_rate || 0) * 100)}% fallback rate`,
       icon: Brain,
-      color: 'text-[#caff42]',
+      color: 'text-[#6366f1]',
     },
     {
       label: 'Open Recalls',
@@ -172,7 +200,7 @@ export default function TopManagementDashboard() {
               className="group relative p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl overflow-hidden"
             >
               {/* Glow */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#caff42] to-transparent opacity-0 group-hover:opacity-[0.06] blur-xl transition-opacity pointer-events-none" />
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#6366f1] to-transparent opacity-0 group-hover:opacity-[0.06] blur-xl transition-opacity pointer-events-none" />
               <div className={`p-3 rounded-2xl bg-gray-100 dark:bg-white/5 ${card.color} w-fit mb-3`}>
                 <Icon size={22} />
               </div>
@@ -260,8 +288,8 @@ export default function TopManagementDashboard() {
               <LineChart data={monthlyTrend}>
                 <defs>
                   <linearGradient id="gradLine" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#caff42" stopOpacity={0.2} />
-                    <stop offset="100%" stopColor="#caff42" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.2} />
+                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(156,163,175,0.15)" />
@@ -286,10 +314,10 @@ export default function TopManagementDashboard() {
                   type="monotone"
                   dataKey="acceptance_pct"
                   name="Acceptance %"
-                  stroke="#caff42"
+                  stroke="#6366f1"
                   strokeWidth={2.5}
-                  dot={{ r: 4, fill: '#caff42', stroke: '#0b0f19', strokeWidth: 2 }}
-                  activeDot={{ r: 6, fill: '#caff42' }}
+                  dot={{ r: 4, fill: '#6366f1', stroke: '#0b0f19', strokeWidth: 2 }}
+                  activeDot={{ r: 6, fill: '#6366f1' }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -300,6 +328,141 @@ export default function TopManagementDashboard() {
           )}
         </motion.div>
       </div>
+
+      {/* ── Cost Avoidance Bar Chart ─────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...spring, delay: 0.55 }}
+        className="p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl mb-6"
+      >
+        <h2 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
+          Cost Avoidance Trend (6 months)
+        </h2>
+        {monthlyTrend.length > 0 ? (
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={monthlyTrend} barSize={28}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(156,163,175,0.12)" vertical={false} />
+              <XAxis dataKey="month" tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`$${v.toLocaleString()}`, 'Cost Avoided']} />
+              <Bar dataKey="cost_avoidance_usd" name="Cost Avoided" fill="#6366f1" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[220px] flex items-center justify-center"><p className="text-xs text-gray-400">Loading…</p></div>
+        )}
+      </motion.div>
+
+      {/* ── AI Performance + Revenue Pie ─────────── */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-6">
+        {/* AI Agent Performance */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...spring, delay: 0.62 }}
+          className="p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl"
+        >
+          <h2 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
+            AI Agent Performance
+          </h2>
+          {monthlyTrend.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={monthlyTrend}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(156,163,175,0.12)" />
+                <XAxis dataKey="month" tick={{ fill: '#9ca3af', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v, n) => [`${v}%`, n]} />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Line type="monotone" dataKey="acceptance_pct" name="Acceptance" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="conversion_pct" name="Conversion" stroke="#38bdf8" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="escalation_pct" name="Escalation" stroke="#f87171" strokeWidth={2} strokeDasharray="4 3" dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[220px] flex items-center justify-center"><p className="text-xs text-gray-400">Loading…</p></div>
+          )}
+        </motion.div>
+
+        {/* Revenue by Component Pie */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...spring, delay: 0.70 }}
+          className="p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl"
+        >
+          <h2 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
+            Revenue by Service Type
+          </h2>
+          {revenuePie.length > 0 ? (
+            <div className="flex items-center gap-6">
+              <ResponsiveContainer width="55%" height={220}>
+                <PieChart>
+                  <Pie data={revenuePie} cx="50%" cy="50%" innerRadius={52} outerRadius={82} paddingAngle={4} dataKey="value" stroke="none" animationDuration={1200}>
+                    {revenuePie.map((_, idx) => <Cell key={idx} fill={REVENUE_COLORS[idx % REVENUE_COLORS.length]} />)}
+                  </Pie>
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`$${v.toLocaleString()}`, 'Revenue']} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="space-y-2">
+                {revenuePie.map((entry, idx) => (
+                  <div key={entry.name} className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: REVENUE_COLORS[idx % REVENUE_COLORS.length] }} />
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400 capitalize truncate max-w-[120px]">{entry.name}</p>
+                    <p className="text-[10px] font-bold text-gray-900 dark:text-white ml-auto">${(entry.value / 1000).toFixed(1)}k</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="h-[220px] flex items-center justify-center"><p className="text-xs text-gray-400">Loading…</p></div>
+          )}
+        </motion.div>
+      </div>
+
+      {/* ── Booking Heatmap ──────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...spring, delay: 0.75 }}
+        className="p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl mb-6"
+      >
+        <h2 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
+          Booking Heatmap — Day × Hour
+        </h2>
+        <div className="overflow-x-auto">
+          <div className="flex gap-1 mb-2 ml-10">
+            {HOURS.map((h) => <span key={h} className="w-9 text-center text-[9px] font-medium text-gray-400 shrink-0">{h}</span>)}
+          </div>
+          {DAYS.map((day) => (
+            <div key={day} className="flex items-center gap-1 mb-1">
+              <span className="w-10 text-[10px] text-gray-400 font-medium shrink-0">{day}</span>
+              {HOURS.map((hour) => {
+                const cell = HEATMAP_DATA.find((d) => d.day === day && d.hour === hour);
+                const v = cell ? cell.value : 0;
+                const opacity = Math.max(0.08, v / 14);
+                return (
+                  <div
+                    key={hour}
+                    title={`${day} ${hour}: ${v} bookings`}
+                    className="w-9 h-9 rounded-lg cursor-default transition-all hover:scale-110 shrink-0"
+                    style={{ backgroundColor: `rgba(202,255,66,${opacity})`, border: `1px solid rgba(202,255,66,${Math.min(opacity * 1.5, 0.3)})` }}
+                  >
+                    <span className="flex items-center justify-center h-full text-[9px] font-bold" style={{ color: v > 8 ? '#0b0f19' : '#6b7280' }}>
+                      {v > 0 ? v : ''}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          <div className="flex items-center gap-2 mt-3 ml-10">
+            <span className="text-[9px] text-gray-400">Low</span>
+            {[0.08, 0.2, 0.4, 0.6, 0.8, 1.0].map((o) => <div key={o} className="w-5 h-3 rounded" style={{ backgroundColor: `rgba(202,255,66,${o})` }} />)}
+            <span className="text-[9px] text-gray-400">High</span>
+          </div>
+        </div>
+      </motion.div>
 
       {/* ── Top 5 At-Risk Vehicles ──────────────── */}
       <motion.div
@@ -365,11 +528,10 @@ export default function TopManagementDashboard() {
                     {/* Mini bar */}
                     <div className="flex-1 h-2 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
                       <motion.div
-                        className={`h-full rounded-full ${
-                          failPct >= 70 ? 'bg-red-500' :
-                          failPct >= 40 ? 'bg-amber-400' :
-                          'bg-emerald-500'
-                        }`}
+                        className={`h-full rounded-full ${failPct >= 70 ? 'bg-red-500' :
+                            failPct >= 40 ? 'bg-amber-400' :
+                              'bg-emerald-500'
+                          }`}
                         initial={{ width: 0 }}
                         animate={{ width: `${failPct}%` }}
                         transition={{ duration: 1, ease: 'easeOut' }}

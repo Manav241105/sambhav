@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -11,7 +11,7 @@ const PRIORITY_COLORS = {
   P0: { bg: '#ef4444', border: '#dc2626', text: '#fff' },
   P1: { bg: '#f97316', border: '#ea580c', text: '#fff' },
   P2: { bg: '#fbbf24', border: '#f59e0b', text: '#1f2937' },
-  P3: { bg: '#caff42', border: '#a3e635', text: '#1f2937' },
+  P3: { bg: '#6366f1', border: '#a3e635', text: '#1f2937' },
 };
 
 /**

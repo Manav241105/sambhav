@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wifi, WifiOff, X, Zap } from 'lucide-react';
 import useWebSocket from '../hooks/useWebSocket';
@@ -50,7 +50,7 @@ export default function LiveToast({ onEvent }) {
           animate={{ opacity: 1, scale: 1 }}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wide backdrop-blur-md border ${
             connected
-              ? 'bg-[#caff42]/10 border-[#caff42]/20 text-[#caff42]'
+              ? 'bg-[#6366f1]/10 border-[#6366f1]/20 text-[#6366f1]'
               : 'bg-red-500/10 border-red-500/20 text-red-400'
           }`}
         >
@@ -72,8 +72,8 @@ export default function LiveToast({ onEvent }) {
               transition={spring}
               className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-[#0b0f19]/90 backdrop-blur-md shadow-lg"
             >
-              <div className="p-1.5 rounded-lg bg-[#caff42]/15">
-                <Zap size={12} className="text-[#caff42]" />
+              <div className="p-1.5 rounded-lg bg-[#6366f1]/15">
+                <Zap size={12} className="text-[#6366f1]" />
               </div>
               <p className="text-xs font-medium text-gray-700 dark:text-gray-300 flex-1 min-w-0 truncate">
                 {t.label}
