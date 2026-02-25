@@ -150,6 +150,13 @@ class SlotHold:
 
 
 
+# Dashboard state (v6.0)
+try:
+    from app_state import app_state as _app_state
+except ImportError:
+    _app_state = None
+
+
 class BookingConfirmation:
 
     """Structured booking confirmation returned to the conversation agent."""
@@ -1025,6 +1032,20 @@ class SchedulingAgent:
         # Mark slot as booked
 
         self._booked_slots.append((slot_time, tech["id"]))
+
+
+
+        # ── Push to app_state for dashboard API (v6.0) ────────────────────
+
+        if _app_state is not None:
+
+            try:
+
+                _app_state.add_booking(confirmation.to_dict())
+
+            except Exception as _e:
+
+                print(f"   ⚠️  app_state booking write failed: {_e}")
 
 
 

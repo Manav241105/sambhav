@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── FullCalendar theme overrides (dark-mode aware) ─ */
+.bay-calendar-wrapper .fc {
+  --fc-border-color: #e5e7eb;
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: transparent;
+  --fc-today-bg-color: rgba(202, 255, 66, 0.06);
+  font-size: 12px;
+}
+
+.dark .bay-calendar-wrapper .fc {
+  --fc-border-color: rgba(255, 255, 255, 0.08);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: transparent;
+  --fc-today-bg-color: rgba(202, 255, 66, 0.06);
+  color: #d1d5db;
+}
+
+.bay-calendar-wrapper .fc .fc-toolbar-title {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.bay-calendar-wrapper .fc .fc-button {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 10px;
+  text-transform: capitalize;
+}
+
+.dark .bay-calendar-wrapper .fc .fc-button {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #9ca3af;
+}
+
+.bay-calendar-wrapper .fc .fc-button-active,
+.bay-calendar-wrapper .fc .fc-button:hover {
+  background: #caff42;
+  border-color: #caff42;
+  color: #0b0f19;
+}
+
+.bay-calendar-wrapper .fc .fc-timegrid-slot {
+  height: 36px;
+}
+
+.bay-calendar-wrapper .fc .fc-col-header-cell-cushion,
+.bay-calendar-wrapper .fc .fc-daygrid-day-number {
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.bay-calendar-wrapper .fc .fc-event {
+  border-radius: 8px;
+  border-width: 0 0 0 3px;
+  padding: 2px 4px;
+}
+
+.bay-calendar-wrapper .fc .fc-now-indicator-line {
+  border-color: #caff42;
+  border-width: 2px;
+}
+
+.bay-calendar-wrapper .fc .fc-now-indicator-arrow {
+  border-color: #caff42;
+}

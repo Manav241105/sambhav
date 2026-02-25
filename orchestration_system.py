@@ -40,6 +40,9 @@ from scheduling_agent import SchedulingAgent
 from followup_cycle_manager import FollowupCycleManager
 from vehicle_reanalysis_engine import VehicleReanalysisEngine
 
+# Dashboard state (v6.0)
+from app_state import app_state
+
 
 class EventDrivenOrchestratorV41:
     """
@@ -242,6 +245,32 @@ class EventDrivenOrchestratorV41:
         # Complete cycle
         self.cycle_manager.complete_cycle(vehicle_id, "COMPLETED")
         
+        # ── Write result to app_state for dashboard API (v6.0) ────────────
+        try:
+            app_state.upsert_vehicle(vehicle_id, {
+                **vehicle,
+                "telematics": telematics,
+                "customer": customer,
+                "diagnosis": diagnosis,
+                "priority": diagnosis.get("priority", "P3"),
+                "health_score": round(1 - diagnosis.get("failure_probability", 0.5), 2),
+                "failure_probability": diagnosis.get("failure_probability", 0.5),
+                "work_order": work_order,
+                "workflow_state": "completed",
+                "cycle_number": cycle_number,
+                "customer_response": customer_response.get('customer_response'),
+            })
+
+            if diagnosis.get("priority") in ("P0", "P1"):
+                app_state.fire_alert({
+                    "vehicle_id": vehicle_id,
+                    "priority": diagnosis.get("priority"),
+                    "message": f"{vehicle.get('make', '')} {vehicle.get('model', '')} — {diagnosis.get('severity', 'unknown')} condition",
+                    "component": diagnosis.get("affected_component"),
+                })
+        except Exception as _app_err:
+            print(f"   ⚠️  app_state write failed: {_app_err}")
+
         return {
             "status": "completed",
             "vehicle_id": vehicle_id,

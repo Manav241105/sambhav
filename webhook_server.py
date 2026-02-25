@@ -5,6 +5,7 @@ FastAPI server for receiving real-time customer responses
 
 from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 import asyncio
 from datetime import datetime
@@ -14,12 +15,29 @@ from event_system import EventBus, Event
 from config import EventTypes
 from customer_interpreter import CustomerResponseInterpreter
 
+# Dashboard API layer (v6.0)
+from api_server import api_router, ws_router, seed_all
+from app_state import app_state
+
 
 # Initialize FastAPI app
 app = FastAPI(
     title="Predictive Maintenance Webhook Server",
     description="Receives customer responses from WhatsApp, SMS, Email",
-    version="4.0"
+    version="5.0"
+)
+
+# Mount dashboard REST + WebSocket routers
+app.include_router(api_router)
+app.include_router(ws_router)
+
+# CORS — allow React dev server to reach the API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Global orchestrator (initialized on startup)
@@ -45,6 +63,11 @@ async def startup_event():
     # Create interpreter
     interpreter = CustomerResponseInterpreter(interpreter_client)
     
+    # Seed dashboard with mock data so the frontend has something to show
+    seed_all()
+    print(f"✅ Dashboard seeded: {len(app_state.vehicles)} vehicles, "
+          f"{len(app_state.bookings)} bookings, {len(app_state.conversations)} conversations")
+
     print("✅ Webhook server ready to receive customer responses")
     print("="*80 + "\n")
 

@@ -49,6 +49,12 @@ from personalization_context_engine import PersonalizationContextEngine
 from edge_case_decision_engine import EdgeCaseDecisionEngine
 from followup_cycle_manager import FollowupCycleManager
 
+# Dashboard state (v6.0)
+try:
+    from app_state import app_state as _app_state
+except ImportError:
+    _app_state = None
+
 
 class CustomerEngagementAgentV6:
     """
@@ -787,6 +793,24 @@ Return ONLY the message text — no JSON."""
               f"Resistance: {memory_summary['resistance_level']} ({memory_summary['resistance_trend']}) | "
               f"Velocity: {memory_summary['decision_velocity']}")
         print(f"   🎯 [v7] Strategy: {strategy_label} | EdgeCase: {edge_case or 'None'} | Trust Damage: {memory_summary['trust_damage']}")
+
+        # ── Push turn to app_state for dashboard API (v6.0) ─────────────
+        if _app_state is not None:
+            try:
+                _app_state.add_conversation_turn({
+                    "vehicle_id": vehicle.get("vehicle_id") or vehicle.get("id", ""),
+                    "customer_id": customer_id,
+                    "customer_name": customer_data.get("name", ""),
+                    "direction": "OUTBOUND",
+                    "channel": channel,
+                    "message": final_response[:500],
+                    "turn_number": turn_number,
+                    "status": status,
+                    "intent": primary_intent,
+                    "strategy": strategy,
+                })
+            except Exception as _e:
+                print(f"   ⚠️  app_state conversation write failed: {_e}")
 
         return {"status": status, "next_message": final_response}
 
