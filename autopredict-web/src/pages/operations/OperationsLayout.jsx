@@ -5,18 +5,16 @@ import { Truck, CalendarDays, MessageSquare, AlertTriangle } from 'lucide-react'
 import DashboardLayout from '../../components/DashboardLayout';
 
 import AlertBanner from '../../components/AlertBanner';
-import LiveToast from '../../components/LiveToast';
+import LiveEventBus from '../../components/LiveEventBus';
 
 const API = 'http://localhost:8000';
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
-export { spring };
 
 function latestTelem(telematics) {
     if (!telematics) return {};
     if (Array.isArray(telematics)) return telematics[telematics.length - 1] || {};
     return telematics;
 }
-export { latestTelem };
 
 export default function OperationsLayout() {
     const [vehicles, setVehicles] = useState([]);
@@ -29,20 +27,31 @@ export default function OperationsLayout() {
     const [mfgLoading, setMfgLoading] = useState(false);
     const [loading, setLoading] = useState(true);
 
+    /* ── Phase 2 state ──────────────────────────────── */
+    const [vehicleHistory, setVehicleHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    const [workloadData, setWorkloadData] = useState(null);
+    const [fleetAnalytics, setFleetAnalytics] = useState(null);
+    const [diagnosing, setDiagnosing] = useState(false);
+
     const fetchAll = useCallback(async () => {
         try {
-            const [vRes, aRes, bRes, cRes, sRes] = await Promise.all([
+            const [vRes, aRes, bRes, cRes, sRes, wRes, fRes] = await Promise.all([
                 axios.get(`${API}/api/vehicles`),
                 axios.get(`${API}/api/dashboard/alerts`),
                 axios.get(`${API}/api/bookings/today`),
                 axios.get(`${API}/api/conversations`),
                 axios.get(`${API}/api/dashboard/summary`),
+                axios.get(`${API}/api/analytics/workload`).catch(() => ({ data: null })),
+                axios.get(`${API}/api/analytics/fleet`).catch(() => ({ data: null })),
             ]);
             setVehicles(Array.isArray(vRes.data) ? vRes.data : Object.values(vRes.data));
             setAlerts(Array.isArray(aRes.data) ? aRes.data : []);
             setBookings(Array.isArray(bRes.data) ? bRes.data : []);
             setConversations(Array.isArray(cRes.data) ? cRes.data : []);
             setSummary(sRes.data);
+            if (wRes.data) setWorkloadData(wRes.data);
+            if (fRes.data) setFleetAnalytics(fRes.data);
         } catch (err) {
             console.error('Ops fetch error:', err);
         } finally {
@@ -67,6 +76,36 @@ export default function OperationsLayout() {
             .finally(() => { if (!cancelled) setMfgLoading(false); });
         return () => { cancelled = true; };
     }, [selectedVehicle]);
+
+    /* ── Fetch vehicle history when a vehicle is selected ── */
+    useEffect(() => {
+        if (!selectedVehicle) { setVehicleHistory([]); return; }
+        let cancelled = false;
+        setHistoryLoading(true);
+        axios.get(`${API}/api/vehicles/${selectedVehicle.vehicle_id}/history?days=7`)
+            .then((r) => { if (!cancelled) setVehicleHistory(Array.isArray(r.data) ? r.data : []); })
+            .catch(() => { if (!cancelled) setVehicleHistory([]); })
+            .finally(() => { if (!cancelled) setHistoryLoading(false); });
+        return () => { cancelled = true; };
+    }, [selectedVehicle]);
+
+    /* ── Trigger AI diagnosis for a vehicle ──────────── */
+    const triggerDiagnosis = useCallback(async (vehicleId) => {
+        setDiagnosing(true);
+        try {
+            await axios.post(`${API}/api/vehicles/${vehicleId}/diagnose`);
+            await fetchAll();
+            // Re-select the vehicle to get updated data
+            const vRes = await axios.get(`${API}/api/vehicles`);
+            const refreshed = (Array.isArray(vRes.data) ? vRes.data : Object.values(vRes.data))
+                .find(v => v.vehicle_id === vehicleId);
+            if (refreshed) setSelectedVehicle(refreshed);
+        } catch (err) {
+            console.error('Diagnosis error:', err);
+        } finally {
+            setDiagnosing(false);
+        }
+    }, [fetchAll]);
 
     const dismissAlert = (i) => setAlerts((prev) => prev.filter((_, idx) => idx !== i));
     const selectFromAlert = (alert) => {
@@ -107,11 +146,20 @@ export default function OperationsLayout() {
         vehicles, alerts, bookings, conversations, summary, loading,
         selectedVehicle, setSelectedVehicle, manufacturing, mfgLoading,
         dismissAlert, selectFromAlert, statCards, fleetHealthPie, telematicsTrend,
+        /* Phase 2 */
+        vehicleHistory, historyLoading, workloadData, fleetAnalytics,
+        diagnosing, triggerDiagnosis, fetchAll,
     };
 
     return (
         <DashboardLayout title="Operations Dashboard">
-            <LiveToast onEvent={fetchAll} />
+            <LiveEventBus
+                onDiagnosisUpdated={fetchAll}
+                onBookingCreated={fetchAll}
+                onAlertFired={fetchAll}
+                onVehicleUpdated={fetchAll}
+                onConversationTurn={fetchAll}
+            />
             <AlertBanner alerts={alerts} onDismiss={dismissAlert} onClickAlert={selectFromAlert} />
             <Outlet context={ctx} />
         </DashboardLayout>

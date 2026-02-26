@@ -68,6 +68,14 @@ async def startup_event():
     print(f"✅ Dashboard seeded: {len(app_state.vehicles)} vehicles, "
           f"{len(app_state.bookings)} bookings, {len(app_state.conversations)} conversations")
 
+    # Start background AI diagnosis loop (re-scans every 30 min)
+    try:
+        from diagnosis_orchestrator import background_diagnosis_loop
+        asyncio.create_task(background_diagnosis_loop(interval_minutes=30))
+        print("✅ Background diagnosis loop started (30-min interval)")
+    except Exception as e:
+        print(f"⚠️  Background diagnosis loop not started: {e}")
+
     print("✅ Webhook server ready to receive customer responses")
     print("="*80 + "\n")
 

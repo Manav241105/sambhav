@@ -1,11 +1,14 @@
 ﻿import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
-import { X, Car, Gauge, Activity, Calendar } from 'lucide-react';
+import { X, Car, Gauge, Activity, Calendar, RefreshCw, CalendarPlus } from 'lucide-react';
 import VehicleCard from '../../components/VehicleCard';
 import TelematicsGauge from '../../components/TelematicsGauge';
 import SubsystemRadar from '../../components/SubsystemRadar';
 import DtcPanel from '../../components/DtcPanel';
+import HealthScoreTimeline from '../../components/charts/HealthScoreTimeline';
+import RULDistribution from '../../components/charts/RULDistribution';
+import DtcFrequencyBar from '../../components/charts/DtcFrequencyBar';
 import {
     ResponsiveContainer, PieChart, Pie, Cell, Tooltip,
     LineChart, Line, XAxis, YAxis, CartesianGrid, Legend,
@@ -79,12 +82,39 @@ export default function OpsFleet() {
     const {
         vehicles, selectedVehicle, setSelectedVehicle,
         manufacturing, mfgLoading, fleetHealthPie, telematicsTrend,
+        vehicleHistory, historyLoading, diagnosing, triggerDiagnosis,
+        conversations, bookings,
     } = useOutletContext();
 
     const hasSelection = Boolean(selectedVehicle);
     const pri = selectedVehicle ? (PRI[selectedVehicle.priority] || PRI.P3) : null;
     const diag = selectedVehicle?.diagnosis || {};
     const telem = latestTelem(selectedVehicle?.telematics);
+
+    /* ── Derive conversation stage per vehicle ──────── */
+    const vehicleStages = React.useMemo(() => {
+        const map = {};
+        (conversations || []).forEach((c) => {
+            const vid = c.vehicle_id;
+            if (!vid) return;
+            if (!map[vid]) map[vid] = { outbound: 0, inbound: 0, turns: 0, booked: false };
+            map[vid].turns += 1;
+            if (c.direction === 'OUTBOUND') map[vid].outbound += 1;
+            if (c.direction === 'INBOUND') map[vid].inbound += 1;
+            if (c.status === 'BOOKED' || c.status === 'COMPLETED') map[vid].booked = true;
+        });
+        // Also check bookings
+        (bookings || []).forEach((b) => {
+            if (b.vehicle_id && map[b.vehicle_id]) map[b.vehicle_id].booked = true;
+        });
+        const result = {};
+        Object.entries(map).forEach(([vid, data]) => {
+            if (data.booked || data.turns >= 5) result[vid] = 'booked';
+            else if (data.inbound > 0) result[vid] = 'interested';
+            else if (data.outbound > 0) result[vid] = 'contacted';
+        });
+        return result;
+    }, [conversations, bookings]);
 
     return (
         <motion.div
@@ -176,6 +206,7 @@ export default function OpsFleet() {
                             <VehicleCard
                                 vehicle={v}
                                 selected={selectedVehicle?.vehicle_id === v.vehicle_id}
+                                conversationStage={vehicleStages[v.vehicle_id]}
                                 onClick={(clicked) =>
                                     setSelectedVehicle(
                                         selectedVehicle?.vehicle_id === clicked.vehicle_id ? null : clicked
@@ -265,6 +296,78 @@ export default function OpsFleet() {
                                 {/* Scrollable content */}
                                 <div className="overflow-y-auto max-h-[55vh] space-y-0">
 
+                                    {/* ─ AI Diagnostic Reasoning ─ */}
+                                    {diag.diagnostic_reasoning && (
+                                        <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                                            <div className="p-4 rounded-2xl bg-[#6366f1]/5 border border-[#6366f1]/20">
+                                                <p className="text-[10px] font-bold uppercase tracking-wider text-[#6366f1] mb-1.5">
+                                                    AI Diagnostic Reasoning
+                                                </p>
+                                                <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed italic">
+                                                    "{diag.diagnostic_reasoning}"
+                                                </p>
+                                                {diag.secondary_risks?.length > 0 && (
+                                                    <div className="mt-2 flex flex-wrap gap-1.5">
+                                                        {diag.secondary_risks.map((risk, i) => (
+                                                            <span key={i} className="px-2 py-0.5 rounded-full text-[9px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                                                                ⚠ {risk}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ─ Health Score Timeline ─ */}
+                                    <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-3">
+                                            Health Score (7-day)
+                                        </p>
+                                        {historyLoading ? (
+                                            <div className="h-36 rounded-2xl bg-gray-100 dark:bg-white/5 animate-pulse" />
+                                        ) : (
+                                            <HealthScoreTimeline data={vehicleHistory} height={140} />
+                                        )}
+                                    </div>
+
+                                    {/* ─ Suggested Action + Run Diagnosis + Book Service ─ */}
+                                    <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                                        {diag.recommended_action && (
+                                            <div className="mb-3 p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
+                                                <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
+                                                    Suggested Action
+                                                </p>
+                                                <p className="text-xs text-gray-700 dark:text-gray-300">
+                                                    {diag.recommended_action}
+                                                </p>
+                                            </div>
+                                        )}
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => triggerDiagnosis(selectedVehicle.vehicle_id)}
+                                                disabled={diagnosing}
+                                                className="flex-1 px-4 py-3 rounded-2xl text-xs font-bold bg-[#6366f1] text-white hover:bg-[#5558e6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                                            >
+                                                {diagnosing ? (
+                                                    <RefreshCw size={14} className="animate-spin mx-auto" />
+                                                ) : (
+                                                    '🧠 Run AI Analysis'
+                                                )}
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    // Navigate to calendar with pre-filled vehicle
+                                                    window.location.href = `/dashboard/operations/calendar?vehicle=${selectedVehicle.vehicle_id}`;
+                                                }}
+                                                className="flex-1 px-4 py-3 rounded-2xl text-xs font-bold bg-[#caff42] text-[#0b0f19] hover:bg-[#b8e63b] transition-colors flex items-center justify-center gap-1.5"
+                                            >
+                                                <CalendarPlus size={14} />
+                                                Book Service
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     {/* ─ Live Gauges ─ */}
                                     <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
                                         <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
@@ -295,16 +398,75 @@ export default function OpsFleet() {
                                                 <p className="text-xs text-gray-400">Loading…</p>
                                             </div>
                                         ) : manufacturing ? (
-                                            <DtcPanel manufacturing={manufacturing} />
+                                            <DtcPanel
+                                                dtcCodes={manufacturing?.dtc_codes || []}
+                                                recalls={manufacturing?.recalls || []}
+                                                loading={false}
+                                            />
                                         ) : (
                                             <p className="text-xs text-gray-400">No manufacturing data available.</p>
                                         )}
                                     </div>
+
+                                    {/* ─ Maintenance History ─ */}
+                                    {selectedVehicle.maintenance_history?.length > 0 && (
+                                        <div className="px-5 py-4 border-t border-gray-100 dark:border-gray-800">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-3">
+                                                Maintenance History
+                                            </p>
+                                            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                                {selectedVehicle.maintenance_history.map((entry, i) => (
+                                                    <motion.div
+                                                        key={entry.service_id || i}
+                                                        initial={{ opacity: 0, x: -8 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        transition={{ ...spring, delay: i * 0.04 }}
+                                                        className="flex items-start gap-3 p-3 rounded-2xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/5"
+                                                    >
+                                                        <div className="mt-0.5 w-2 h-2 rounded-full bg-[#6366f1] shrink-0" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-xs font-bold text-gray-900 dark:text-white">
+                                                                {entry.service_type}
+                                                            </p>
+                                                            <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                                                                {entry.service_date} · ${entry.cost_usd} · {entry.mileage_km?.toLocaleString()} km
+                                                            </p>
+                                                            {entry.parts_replaced?.length > 0 && (
+                                                                <div className="flex gap-1 mt-1 flex-wrap">
+                                                                    {entry.parts_replaced.map((p, j) => (
+                                                                        <span key={j} className="px-1.5 py-0.5 rounded-full text-[8px] font-medium bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400">
+                                                                            {p}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </motion.div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
+            </div>
+
+            {/* ── RUL Distribution + DTC Frequency ─────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div className="p-5 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl">
+                    <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+                        RUL Distribution
+                    </h3>
+                    <RULDistribution vehicles={vehicles} />
+                </div>
+                <div className="p-5 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl">
+                    <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+                        DTC Frequency (Fleet-wide)
+                    </h3>
+                    <DtcFrequencyBar vehicles={vehicles} />
+                </div>
             </div>
         </motion.div>
     );

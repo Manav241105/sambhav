@@ -2,12 +2,15 @@
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import TechnicianUtilisation from '../../components/charts/TechnicianUtilisation';
+import BayOccupancyGantt from '../../components/charts/BayOccupancyGantt';
+import ServiceDurationBox from '../../components/charts/ServiceDurationBox';
 
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 const tooltipStyle = { backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '12px', fontSize: 12, color: '#fff' };
 
 export default function ManagerWorkload() {
-    const { techWorkload, timeline } = useOutletContext();
+    const { techWorkload, timeline, bookings, bayOccupancy, serviceDuration } = useOutletContext();
 
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="space-y-8">
@@ -16,15 +19,14 @@ export default function ManagerWorkload() {
                     Technician Workload &amp; Today's Schedule
                 </h2>
                 <p className="text-sm text-gray-400 dark:text-gray-500 mb-6 max-w-2xl leading-relaxed">
-                    Measures bay utilisation and individual technician load for the current day.
-                    Use this view to balance assignments if specific bays or staff are over-indexed while others remain idle.
+                    Measures bay utilisation and individual technician load.
                     Technicians with &gt;8 hours are approaching capacity.
                 </p>
             </div>
 
-            {/* Technician Workload Chart */}
+            {/* Original Technician Workload Chart */}
             <div className="p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl">
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Technician Workload</h3>
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Technician Workload — Jobs &amp; Hours</h3>
                 {techWorkload.length > 0 ? (
                     <ResponsiveContainer width="100%" height={280}>
                         <BarChart data={techWorkload} barCategoryGap="25%">
@@ -41,6 +43,15 @@ export default function ManagerWorkload() {
                         <p className="text-xs text-gray-400">No bookings today</p>
                     </div>
                 )}
+            </div>
+
+            {/* Phase 3: Technician Utilisation Heatmap */}
+            <TechnicianUtilisation technicians={techWorkload} bookings={bookings} />
+
+            {/* Phase 3: Bay Occupancy Gantt + Service Duration Box */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <BayOccupancyGantt slots={bayOccupancy.slots} bays={bayOccupancy.bays} />
+                <ServiceDurationBox components={serviceDuration} />
             </div>
 
             {/* Today's Appointments Timeline */}

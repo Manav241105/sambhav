@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { WebSocketProvider } from './contexts/WebSocketContext';
 import HeroSection from './components/HeroSection';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -33,6 +34,7 @@ import ExecRecalls from './pages/executive/ExecRecalls';
 function App() {
   return (
     <BrowserRouter>
+      <WebSocketProvider>
       <Routes>
         {/* ── Public ────────────────────────────────── */}
         <Route path="/" element={<HeroSection />} />
@@ -76,7 +78,21 @@ function App() {
         <Route path="/dashboard/recalls" element={<ProtectedRoute><RecallsPage /></ProtectedRoute>} />
         <Route path="/dashboard/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
         <Route path="/dashboard/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+
+        {/* ── 404 catch-all ─────────────────────────── */}
+        <Route path="*" element={
+          <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-[#0b0f19]">
+            <div className="text-center">
+              <p className="text-6xl font-extrabold text-gray-900 dark:text-white mb-2">404</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Page not found</p>
+              <a href="/" className="px-5 py-2.5 rounded-2xl text-sm font-bold bg-[#6366f1] text-white hover:bg-[#5558e6] transition-colors">
+                Go home
+              </a>
+            </div>
+          </div>
+        } />
       </Routes>
+      </WebSocketProvider>
     </BrowserRouter>
   );
 }

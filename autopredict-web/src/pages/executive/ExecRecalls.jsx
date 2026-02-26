@@ -1,6 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
+import RecallHeatmapExec from '../../components/charts/RecallHeatmapExec';
+import RecallCompletionDonut from '../../components/charts/RecallCompletionDonut';
+import RecallTimelineBar from '../../components/charts/RecallTimelineBar';
 
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
@@ -12,7 +15,7 @@ const PRI = {
 };
 
 export default function ExecRecalls() {
-    const { topAtRisk, loading } = useOutletContext();
+    const { topAtRisk, loading, recallHeatmap, recallCompletion, recallTimeline } = useOutletContext();
 
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
@@ -25,8 +28,8 @@ export default function ExecRecalls() {
                 RUL below 7 days signals an urgent service window.
             </p>
 
-            <div className="p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl">
-                {/* Table header */}
+            {/* Existing top-at-risk table */}
+            <div className="p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl mb-8">
                 <div className="grid grid-cols-12 gap-3 px-4 pb-3 border-b border-gray-200 dark:border-gray-700">
                     {['#', 'Vehicle', 'Make / Model', 'Priority', 'Failure Prob.', 'Component', 'RUL'].map((h, i) => (
                         <span key={h} className={`col-span-${[1, 2, 2, 2, 2, 2, 1][i]} text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase`}>{h}</span>
@@ -77,6 +80,14 @@ export default function ExecRecalls() {
                     )}
                 </div>
             </div>
+
+            {/* Phase 4 recalls charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <RecallCompletionDonut completion={recallCompletion} />
+                <RecallTimelineBar timeline={recallTimeline} />
+            </div>
+
+            <RecallHeatmapExec heatmap={recallHeatmap} />
         </motion.div>
     );
 }

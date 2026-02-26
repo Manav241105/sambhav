@@ -1,13 +1,16 @@
 ﻿import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
-import { AlertOctagon, ChevronRight, X } from 'lucide-react';
+import { AlertOctagon, ChevronRight, X, ShieldAlert } from 'lucide-react';
 import { ResponsiveContainer, RadialBarChart, RadialBar } from 'recharts';
+import EscalationHeatmap from '../../components/charts/EscalationHeatmap';
+import EscalationReasonBreakdown from '../../components/charts/EscalationReasonBreakdown';
+import EscalationTrendLine from '../../components/charts/EscalationTrendLine';
 
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 export default function ManagerEscalations() {
-    const { escalationQueue, slaCompliance, summary } = useOutletContext();
+    const { escalationQueue, slaCompliance, summary, escalationHeatmapData, escalationAnalytics, escalationTrend } = useOutletContext();
     const [selectedConvo, setSelectedConvo] = useState(null);
 
     return (
@@ -126,6 +129,49 @@ export default function ManagerEscalations() {
                     </div>
                 </div>
             </div>
+
+            {/* SLA Breach Risk — vehicles with RUL < 7 and no booking */}
+            {escalationAnalytics.sla_breach_risk?.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={spring}
+                    className="p-6 border bg-red-50 dark:bg-red-500/5 border-red-200 dark:border-red-500/20 rounded-3xl"
+                >
+                    <div className="flex items-center gap-2 mb-4">
+                        <ShieldAlert size={16} className="text-red-500" />
+                        <h3 className="text-sm font-extrabold text-red-600 dark:text-red-400 uppercase tracking-wider">
+                            SLA Breach Risk — {escalationAnalytics.sla_breach_count} Vehicle{escalationAnalytics.sla_breach_count !== 1 ? 's' : ''}
+                        </h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {escalationAnalytics.sla_breach_risk.map((v) => (
+                            <div key={v.vehicle_id} className="p-3 rounded-2xl border border-red-200 dark:border-red-500/20 bg-white dark:bg-white/5 flex items-center gap-3">
+                                <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${v.priority === 'P0' ? 'bg-red-500/15 text-red-500' : 'bg-orange-500/15 text-orange-500'}`}>
+                                    {v.priority}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-bold text-gray-900 dark:text-white">{v.vehicle_id}</p>
+                                    <p className="text-[10px] text-gray-400 truncate">{(v.component || '').replace(/_/g, ' ')} · {v.rul_days}d RUL</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Phase 3 Charts Row: Heatmap + Reason Breakdown */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <EscalationHeatmap
+                    heatmap={escalationHeatmapData.heatmap}
+                    days={escalationHeatmapData.days}
+                    hours={escalationHeatmapData.hours}
+                />
+                <EscalationReasonBreakdown reasons={escalationAnalytics.reasons_breakdown} />
+            </div>
+
+            {/* Escalation Trend */}
+            <EscalationTrendLine weeks={escalationTrend} />
         </motion.div>
     );
 }

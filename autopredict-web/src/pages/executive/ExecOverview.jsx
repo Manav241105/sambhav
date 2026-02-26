@@ -1,18 +1,25 @@
 ﻿import React from 'react';
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
+import FleetHealthScoreGauge from '../../components/charts/FleetHealthScoreGauge';
+import KPITrendCards from '../../components/charts/KPITrendCards';
+import CostAvoidanceWaterfall from '../../components/charts/CostAvoidanceWaterfall';
+import AIExecutiveSummary from '../../components/charts/AIExecutiveSummary';
+import ROIDashboard from '../../components/charts/ROIDashboard';
 
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 export default function ExecOverview() {
-    const { bigMetrics, loading } = useOutletContext();
+    const { bigMetrics, loading, fleetHealthScore, vehicles, summary, kpiTrends, roiData } = useOutletContext();
 
     return (
         <div>
             <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">
                 High-level pulse check across the fleet. Click a tab above for deeper analysis.
             </p>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+            {/* KPI stat cards */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
                 {bigMetrics.map((card, i) => {
                     const Icon = card.icon;
                     return (
@@ -33,6 +40,30 @@ export default function ExecOverview() {
                         </motion.div>
                     );
                 })}
+            </div>
+
+            {/* AI Summary + Fleet Health Gauge */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div className="lg:col-span-2">
+                    <AIExecutiveSummary />
+                </div>
+                <FleetHealthScoreGauge
+                    score={fleetHealthScore}
+                    total={summary?.total_vehicles ?? 0}
+                    critical={summary?.critical_vehicles ?? 0}
+                    warning={vehicles.filter((v) => v.scenario === 'warning' || v.priority === 'P2').length}
+                />
+            </div>
+
+            {/* KPI Trend Cards */}
+            <div className="mb-8">
+                <KPITrendCards trends={kpiTrends} />
+            </div>
+
+            {/* Cost Avoidance Waterfall + ROI Dashboard */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <CostAvoidanceWaterfall vehicles={vehicles} />
+                <ROIDashboard roi={roiData} />
             </div>
         </div>
     );

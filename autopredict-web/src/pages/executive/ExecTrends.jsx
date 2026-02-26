@@ -2,12 +2,16 @@
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import SixMonthComparison from '../../components/charts/SixMonthComparison';
+import AcceptanceRateLine from '../../components/charts/AcceptanceRateLine';
+import ConversionScatterByMake from '../../components/charts/ConversionScatterByMake';
+import WhatIfSimulator from '../../components/charts/WhatIfSimulator';
 
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 const tooltipStyle = { backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '12px', fontSize: 12, color: '#fff' };
 
 export default function ExecTrends() {
-    const { monthlyTrend } = useOutletContext();
+    const { monthlyTrend, monthly, conversionByMake } = useOutletContext();
 
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
@@ -20,7 +24,8 @@ export default function ExecTrends() {
                 Escalation rate rising alongside conversion rate drop is a flag for agent retraining.
             </p>
 
-            <div className="p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl">
+            {/* Existing line chart */}
+            <div className="p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl mb-8">
                 {monthlyTrend.length > 0 ? (
                     <ResponsiveContainer width="100%" height={320}>
                         <LineChart data={monthlyTrend}>
@@ -45,6 +50,17 @@ export default function ExecTrends() {
                         <p className="text-sm text-gray-400">Loading trends…</p>
                     </div>
                 )}
+            </div>
+
+            {/* Phase 4 charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <SixMonthComparison months={monthlyTrend} />
+                <AcceptanceRateLine months={monthlyTrend} />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ConversionScatterByMake makes={conversionByMake} />
+                <WhatIfSimulator />
             </div>
         </motion.div>
     );

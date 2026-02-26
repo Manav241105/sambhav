@@ -1,7 +1,10 @@
-﻿import React from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Gauge, Wrench, Clock, ChevronRight } from 'lucide-react';
+import { Gauge, Wrench, Clock, ChevronRight, MessageCircle } from 'lucide-react';
+import axios from 'axios';
+import TelematicsSparklines from './charts/TelematicsSparklines';
 
+const API = 'http://localhost:8000';
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 /* ── Priority colours ─────────────────────────────── */
@@ -69,7 +72,14 @@ function HealthRing({ score = 0, size = 64, strokeWidth = 5, color = '#22c55e' }
  *   onClick   — callback when card is clicked
  *   selected  — boolean, highlights the active card
  */
-export default function VehicleCard({ vehicle, onClick, selected = false }) {
+const STAGE_CONFIG = {
+  contacted: { bg: 'bg-[#6366f1]/10', text: 'text-[#6366f1]', label: 'Contacted' },
+  interested: { bg: 'bg-blue-500/10', text: 'text-blue-500', label: 'Interested' },
+  booked: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', label: 'Booked' },
+  none: { bg: 'bg-gray-500/10', text: 'text-gray-400', label: 'No Contact' },
+};
+
+export default function VehicleCard({ vehicle, onClick, selected = false, conversationStage }) {
   if (!vehicle) return null;
 
   const pri = PRIORITY_CONFIG[vehicle.priority] || PRIORITY_CONFIG.P3;
@@ -78,6 +88,27 @@ export default function VehicleCard({ vehicle, onClick, selected = false }) {
   const component = diagnosis.predicted_component?.replace(/_/g, ' ') || 'Healthy';
   const rulDays = diagnosis.rul_days;
   const severity = diagnosis.severity || 'normal';
+  const stage = STAGE_CONFIG[conversationStage] || STAGE_CONFIG.none;
+
+  /* ── Dynamic ring colour based on actual health score ── */
+  const ringColor =
+    healthScore >= 0.75 ? '#22c55e' :
+    healthScore >= 0.5  ? '#fbbf24' :
+    healthScore >= 0.3  ? '#f97316' : '#ef4444';
+
+  /* ── Fetch 7-day sparkline history (lightweight, cached per mount) ── */
+  const [sparkData, setSparkData] = useState([]);
+  useEffect(() => {
+    let cancelled = false;
+    axios
+      .get(`${API}/api/vehicles/${vehicle.vehicle_id}/history?days=7`)
+      .then((r) => { if (!cancelled) setSparkData(r.data?.history || []); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [vehicle.vehicle_id]);
+
+  /* ── Last contact timestamp ── */
+  const lastContact = vehicle.updated_at || vehicle.telematics?.timestamp;
 
   return (
     <motion.div
@@ -116,7 +147,7 @@ export default function VehicleCard({ vehicle, onClick, selected = false }) {
 
       {/* Health ring + details */}
       <div className="flex items-center gap-4">
-        <HealthRing score={healthScore} color={pri.ring} />
+        <HealthRing score={healthScore} color={ringColor} />
 
         <div className="flex-1 space-y-2 min-w-0">
           {/* Predicted component */}
@@ -145,6 +176,36 @@ export default function VehicleCard({ vehicle, onClick, selected = false }) {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* 7-day battery sparkline */}
+      {sparkData.length > 0 && (
+        <div className="mt-3 px-1">
+          <p className="text-[9px] text-gray-400 dark:text-gray-500 mb-0.5 uppercase tracking-wider font-medium">
+            Battery 7d
+          </p>
+          <TelematicsSparklines
+            data={sparkData}
+            dataKey="battery_voltage_v"
+            color={ringColor}
+            height={28}
+          />
+        </div>
+      )}
+
+      {/* Last contact badge + conversation stage */}
+      <div className="flex items-center gap-2 mt-2">
+        {lastContact && (
+          <div className="flex items-center gap-1">
+            <MessageCircle size={10} className="text-gray-400 dark:text-gray-500" />
+            <span className="text-[9px] text-gray-400 dark:text-gray-500">
+              {new Date(lastContact).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        )}
+        <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider ${stage.bg} ${stage.text}`}>
+          {stage.label}
+        </span>
       </div>
 
       {/* Tap indicator */}

@@ -2,12 +2,15 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+import VehicleRiskMatrix from '../../components/charts/VehicleRiskMatrix';
+import ComponentFailureRate from '../../components/charts/ComponentFailureRate';
+import PredictiveAlertFunnel from '../../components/charts/PredictiveAlertFunnel';
 
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 const tooltipStyle = { backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '12px', fontSize: 12, color: '#fff' };
 
 export default function ExecFleetHealth() {
-    const { healthPie, HEALTH_COLORS } = useOutletContext();
+    const { healthPie, HEALTH_COLORS, vehicles, componentFailures, alertFunnel } = useOutletContext();
 
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
@@ -20,7 +23,8 @@ export default function ExecFleetHealth() {
                 Expanding 'Warning' segments indicate a growing maintenance backlog requiring proactive scheduling.
             </p>
 
-            <div className="p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl">
+            {/* Existing health pie */}
+            <div className="p-6 border bg-white dark:bg-white/5 border-gray-200 dark:border-gray-700 rounded-3xl mb-8">
                 {healthPie.length > 0 && healthPie.some((d) => d.value > 0) ? (
                     <div className="flex items-center gap-12">
                         <ResponsiveContainer width="40%" height={280}>
@@ -65,6 +69,14 @@ export default function ExecFleetHealth() {
                     </div>
                 )}
             </div>
+
+            {/* Phase 4 charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <VehicleRiskMatrix vehicles={vehicles} />
+                <PredictiveAlertFunnel stages={alertFunnel} />
+            </div>
+
+            <ComponentFailureRate components={componentFailures} />
         </motion.div>
     );
 }

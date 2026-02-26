@@ -6,7 +6,7 @@ import {
     Clock, ChevronRight, X, Bot, User, Wifi, RefreshCw, CheckCircle,
 } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
-import LiveToast from '../components/LiveToast';
+import LiveEventBus from '../components/LiveEventBus';
 
 const API = 'http://localhost:8000';
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
@@ -101,7 +101,7 @@ export default function ConversationsPage() {
 
     return (
         <DashboardLayout title="AI Conversations">
-            <LiveToast onEvent={fetchAll} />
+            <LiveEventBus onConversationTurn={fetchAll} onAnyEvent={fetchAll} />
 
             <div className="flex gap-6 h-[calc(100vh-160px)]">
                 {/* ── Thread List ─────────────────────────── */}

@@ -6,7 +6,7 @@ import {
     Search, Filter, X, Truck, Calendar, AlertOctagon, ShieldCheck,
 } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
-import LiveToast from '../components/LiveToast';
+import LiveEventBus from '../components/LiveEventBus';
 
 const API = 'http://localhost:8000';
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
@@ -109,7 +109,7 @@ export default function RecallsPage() {
 
     return (
         <DashboardLayout title="Recall Management">
-            <LiveToast onEvent={fetchAll} />
+            <LiveEventBus onAnyEvent={fetchAll} />
 
             {/* Stat cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">

@@ -176,3 +176,108 @@ class VehicleDataGenerator:
             "risk_score": random.uniform(0.0, 0.3),
             "timestamp": datetime.now().isoformat()
         }
+
+    # ── 7-day telematics history (Phase 1) ────────────────────────────────────
+
+    def generate_telematics_history(self, vehicle_id: str,
+                                    scenario: str = "normal",
+                                    days: int = 7) -> List[Dict]:
+        """
+        Generate *days* daily telematics snapshots with a realistic degradation
+        curve.  Critical vehicles degrade faster; normal vehicles stay stable.
+
+        Returns a list ordered from oldest → newest.
+        """
+        scenario_ranges = self.SCENARIOS.get(scenario, self.SCENARIOS["normal"])
+
+        # Seed from vehicle_id so repeated calls produce the same curve
+        seed = int("".join(c for c in vehicle_id if c.isdigit()) or "0") * 131
+        rng = random.Random(seed)
+
+        # Base values (start of the window)
+        brake_base = rng.uniform(*scenario_ranges["brake_pad_mm"])
+        batt_base = rng.uniform(*scenario_ranges["battery_voltage_v"])
+        cool_base = rng.uniform(*scenario_ranges["coolant_temp_c"])
+        oil_base = rng.uniform(*scenario_ranges["oil_pressure_bar"])
+
+        # Per-day degradation rates
+        degrade = {
+            "normal":   {"brake": 0.01, "batt": 0.005, "cool": 0.1,  "oil": 0.005},
+            "warning":  {"brake": 0.05, "batt": 0.02,  "cool": 0.3,  "oil": 0.015},
+            "critical": {"brake": 0.12, "batt": 0.04,  "cool": 0.6,  "oil": 0.03},
+        }.get(scenario, {"brake": 0.01, "batt": 0.005, "cool": 0.1, "oil": 0.005})
+
+        vehicle_num = int(vehicle_id.replace("VEH", "").replace("VEH-", ""))
+        base_odo = 50000 + (vehicle_num * 10000)
+
+        history: List[Dict] = []
+        now = datetime.now()
+
+        for day_offset in range(days, 0, -1):
+            ts = now - timedelta(days=day_offset)
+            day_idx = days - day_offset  # 0 = oldest
+
+            # Apply degradation with small random noise
+            brake = max(0.5, brake_base - degrade["brake"] * day_idx + rng.gauss(0, 0.02))
+            batt = max(10.5, batt_base - degrade["batt"] * day_idx + rng.gauss(0, 0.01))
+            cool = cool_base + degrade["cool"] * day_idx + rng.gauss(0, 0.3)
+            oil = max(1.0, oil_base - degrade["oil"] * day_idx + rng.gauss(0, 0.01))
+
+            # Compute a simple health score for the day
+            health = self._compute_health(brake, batt, cool, oil)
+
+            history.append({
+                "vehicle_id": vehicle_id,
+                "timestamp": ts.strftime("%Y-%m-%dT%H:%M:%S"),
+                "day_label": ts.strftime("%a %d %b"),
+                "odo_km": base_odo + rng.randint(0, 20000) + day_idx * rng.randint(30, 80),
+                "brake_pad_mm": round(brake, 2),
+                "battery_voltage_v": round(batt, 2),
+                "coolant_temp_c": round(cool, 1),
+                "oil_pressure_bar": round(oil, 2),
+                "tire_pressure_psi": {
+                    "fl": round(rng.uniform(30, 35), 1),
+                    "fr": round(rng.uniform(30, 35), 1),
+                    "rl": round(rng.uniform(30, 35), 1),
+                    "rr": round(rng.uniform(30, 35), 1),
+                },
+                "engine_rpm": rng.randint(800, 3000),
+                "speed_kmh": rng.randint(0, 80),
+                "health_score": round(health, 2),
+            })
+
+        return history
+
+    @staticmethod
+    def _compute_health(brake: float, batt: float, cool: float, oil: float) -> float:
+        """
+        Simple deterministic health score in [0, 1] from the four core metrics.
+        Thresholds aligned with DataAnalysisAgentV4 system message.
+        """
+        score = 1.0
+
+        # Brake pads: <3mm critical, <5mm warning
+        if brake < 3.0:
+            score -= 0.35
+        elif brake < 5.0:
+            score -= 0.15
+
+        # Battery: <11.5V critical, <11.8V warning
+        if batt < 11.5:
+            score -= 0.30
+        elif batt < 11.8:
+            score -= 0.12
+
+        # Coolant: >110°C critical, >105°C warning
+        if cool > 110:
+            score -= 0.25
+        elif cool > 105:
+            score -= 0.10
+
+        # Oil: <2.0 critical, <2.5 warning
+        if oil < 2.0:
+            score -= 0.20
+        elif oil < 2.5:
+            score -= 0.08
+
+        return max(0.0, min(1.0, score))

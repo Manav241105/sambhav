@@ -24,6 +24,7 @@ class DashboardEvent:
     CONVERSATION_TURN = "CONVERSATION_TURN"
     ALERT_FIRED = "ALERT_FIRED"
     WORKFLOW_COMPLETED = "WORKFLOW_COMPLETED"
+    DIAGNOSIS_UPDATED = "DIAGNOSIS_UPDATED"
 
     @staticmethod
     def make(event_type: str, payload: Dict) -> Dict:
@@ -173,6 +174,10 @@ class AppState:
 
     def unregister_ws(self, queue: asyncio.Queue):
         self._ws_clients.discard(queue)
+
+    def fire_event(self, event_type: str, payload: Dict = None):
+        """Public convenience: broadcast an arbitrary typed event."""
+        self._broadcast(DashboardEvent.make(event_type, payload or {}))
 
     def _broadcast(self, event: Dict):
         """Non-blocking broadcast to all connected dashboard WS clients."""
