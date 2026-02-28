@@ -30,6 +30,7 @@ const NAV_ITEMS = {
     { to: '/dashboard/operations/fleet', icon: Truck, label: 'Fleet' },
     { to: '/dashboard/operations/calendar', icon: CalendarDays, label: 'Bay Calendar' },
     { to: '/dashboard/operations/conversations', icon: MessageSquare, label: 'Conversations' },
+    { to: '/dashboard/operations/warnings', icon: AlertTriangle, label: 'Warnings' },
     { to: '/dashboard/recalls', icon: RotateCcw, label: 'Recalls' },
   ],
   manager: [

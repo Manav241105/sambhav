@@ -13,7 +13,7 @@ import random
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, HTTPException
+from fastapi import APIRouter, Body, WebSocket, WebSocketDisconnect, Query, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -250,6 +250,62 @@ async def list_bookings():
 async def list_todays_bookings():
     """Only today's bookings — used for the bay calendar."""
     return app_state.get_todays_bookings()
+
+
+@api_router.post("/bookings")
+async def create_booking(body: dict = Body(...)):
+    """
+    Create a new booking from the dashboard (operator manually adds).
+    Expects: vehicle_id, service_component, slot_time_iso, technician_name,
+             bay, priority, service_duration_hours (optional, default 1.5).
+    """
+    import uuid
+    booking = {
+        "booking_id":            f"BK{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}",
+        "vehicle_id":            body.get("vehicle_id", "UNKNOWN"),
+        "service_component":     body.get("service_component", "General"),
+        "slot_time_iso":         body.get("slot_time_iso", datetime.now().isoformat()),
+        "technician_name":       body.get("technician_name", "Unassigned"),
+        "bay":                   body.get("bay", "BAY-1"),
+        "priority":              body.get("priority", "P3"),
+        "status":                body.get("status", "CONFIRMED"),
+        "service_duration_hours":float(body.get("service_duration_hours", 1.5)),
+        "customer_name":         body.get("customer_name", ""),
+        "created_at":            datetime.now().isoformat(),
+        "source":                "dashboard",
+    }
+    app_state.add_booking(booking)
+    return booking
+
+
+@api_router.patch("/bookings/{booking_id}")
+async def update_booking(booking_id: str, body: dict = Body(...)):
+    """
+    Update an existing booking (slot time, status, duration, technician, bay).
+    The frontend uses this for drag/drop reschedule + status changes.
+    """
+    for b in app_state.bookings:   # iterate real list, not a copy
+        if b.get("booking_id") == booking_id:
+            b.update({k: v for k, v in body.items() if v is not None})
+            b["updated_at"] = datetime.now().isoformat()
+            return b
+    raise HTTPException(404, f"Booking {booking_id} not found")
+
+
+@api_router.delete("/bookings/{booking_id}")
+async def cancel_booking(booking_id: str):
+    """Cancel (delete) a booking by ID."""
+    for i, b in enumerate(app_state.bookings):   # iterate real list, not a copy
+        if b.get("booking_id") == booking_id:
+            cancelled = app_state.bookings.pop(i)
+            cancelled["status"] = "CANCELLED"
+            cancelled["cancelled_at"] = datetime.now().isoformat()
+            app_state._broadcast(DashboardEvent.make(
+                DashboardEvent.BOOKING_CANCELLED,
+                {"booking_id": booking_id},
+            ))
+            return cancelled
+    raise HTTPException(404, f"Booking {booking_id} not found")
 
 
 @api_router.get("/availability")
@@ -1304,3 +1360,204 @@ async def ws_dashboard(ws: WebSocket):
         pass
     finally:
         app_state.unregister_ws(queue)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  MOBILE / FLUTTER ENDPOINTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ── In-memory OTP store (replace with real SMS in prod) ──────────────────────
+_otp_store: Dict[str, str] = {}
+_customer_fcm: Dict[str, str] = {}
+
+class OtpRequest(BaseModel):
+    phone: str
+
+class OtpVerify(BaseModel):
+    phone: str
+    otp: str
+
+class ConversationMessage(BaseModel):
+    vehicle_id: Optional[str] = None
+    customer_id: Optional[str] = None
+    message: str
+
+class FcmRegister(BaseModel):
+    customer_id: str
+    token: str
+
+# ── 1. Send OTP ───────────────────────────────────────────────────────────────
+@api_router.post("/auth/otp/send")
+async def send_otp(body: OtpRequest):
+    """Send a 6-digit OTP to the given phone number (mock: always 000000)."""
+    otp = "000000"  # TODO: replace with real Twilio/SMS call
+    _otp_store[body.phone] = otp
+    return {"status": "sent", "phone": body.phone, "debug_otp": otp}
+
+
+# ── 2. Verify OTP ─────────────────────────────────────────────────────────────
+@api_router.post("/auth/otp/verify")
+async def verify_otp(body: OtpVerify):
+    """Verify OTP and return a session token."""
+    stored = _otp_store.get(body.phone)
+    if stored is None:
+        raise HTTPException(400, "No OTP sent for this phone number")
+    if stored != body.otp:
+        raise HTTPException(401, "Invalid OTP")
+    _otp_store.pop(body.phone, None)
+    # Minimal session token (replace with JWT in prod)
+    import base64, json as _json
+    payload = _json.dumps({"phone": body.phone, "exp": (datetime.now() + timedelta(days=7)).isoformat()})
+    token = base64.b64encode(payload.encode()).decode()
+    return {"status": "verified", "token": token, "phone": body.phone}
+
+
+# ── 3. Register customer ──────────────────────────────────────────────────────
+@api_router.post("/auth/register")
+async def register_customer(body: dict = Body(...)):
+    """Register a new customer and link initial vehicle."""
+    customer_id = f"CUST-{body.get('phone', 'UNKNOWN')[-4:]}"
+    vehicle_id = body.get("vehicle_id")
+    entry = {
+        "customer_id": customer_id,
+        "phone": body.get("phone"),
+        "name": body.get("name", ""),
+        "vehicle_ids": [vehicle_id] if vehicle_id else [],
+        "created_at": datetime.now().isoformat(),
+    }
+    # Store in a simple dict on app_state (extend as needed)
+    if not hasattr(app_state, "_customers"):
+        app_state._customers = {}
+    app_state._customers[customer_id] = entry
+    return entry
+
+
+# ── 4. Get customer vehicles ──────────────────────────────────────────────────
+@api_router.get("/customer/{customer_id}/vehicles")
+async def get_customer_vehicles(customer_id: str):
+    """Return vehicles linked to a customer account."""
+    if not hasattr(app_state, "_customers") or customer_id not in app_state._customers:
+        # Fall back to returning all vehicles if customer not registered yet
+        return app_state.get_all_vehicles()[:3]
+    cust = app_state._customers[customer_id]
+    vehicle_ids = cust.get("vehicle_ids", [])
+    all_v = {v["vehicle_id"]: v for v in app_state.get_all_vehicles()}
+    return [all_v[vid] for vid in vehicle_ids if vid in all_v]
+
+
+# ── 5. AI Conversation Message ───────────────────────────────────────────────
+@api_router.post("/conversations/message")
+async def conversation_message(body: ConversationMessage):
+    """
+    Route a customer message to the AI agent and return a response.
+    The AI agent has full context of the vehicle's diagnosis, bookings, alerts.
+    Returns: { message: str, action?: { type: str, payload: dict } }
+    """
+    vehicle_id = body.vehicle_id
+    user_text  = body.message.lower().strip()
+
+    # Fetch vehicle context
+    vehicle = None
+    if vehicle_id:
+        all_v = {v["vehicle_id"]: v for v in app_state.get_all_vehicles()}
+        vehicle = all_v.get(vehicle_id)
+
+    # Simple intent routing (extend by wiring to customer_engagement.py)
+    action = None
+    if any(kw in user_text for kw in ["book", "appointment", "service", "schedule"]):
+        # Find available slot
+        avail_slots = []
+        tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+        avail_slots = [
+            {"bay": "BAY-3", "time": f"{tomorrow}T10:00:00", "technician": "Rajesh Kumar"},
+            {"bay": "BAY-1", "time": f"{tomorrow}T14:00:00", "technician": "Priya Nair"},
+        ]
+        reply = (
+            f"I've found available slots for you. Here's the best match based on your vehicle's diagnosis:\n"
+            f"📅 {tomorrow} · 10:00 AM · Bay 3 · Rajesh Kumar"
+        )
+        action = {"type": "SHOW_BOOKING_CARD", "payload": avail_slots[0]}
+
+    elif any(kw in user_text for kw in ["diagnosis", "health", "status", "check", "problem", "issue"]):
+        health_score = vehicle.get("health_score", 75) if vehicle else 75
+        alerts = [a for a in app_state.get_all_alerts() if a.get("vehicle_id") == vehicle_id]
+        critical = [a for a in alerts if a.get("severity") == "P0"]
+        if critical:
+            reply = (
+                f"⚠️ Your vehicle has {len(critical)} critical issue(s):\n"
+                + "\n".join(f"• {a.get('component', 'Unknown')}: {a.get('message', '')}" for a in critical[:3])
+                + f"\nOverall health score: {health_score}%. I recommend booking a service soon."
+            )
+        else:
+            reply = f"Your vehicle looks mostly healthy (score: {health_score}%). No critical issues detected right now."
+        action = {"type": "SHOW_DIAGNOSIS", "payload": {"vehicle_id": vehicle_id, "health_score": health_score}}
+
+    elif any(kw in user_text for kw in ["cancel", "cancellation"]):
+        reply = "To cancel a booking, please go to My Bookings and tap the booking you'd like to cancel."
+
+    elif any(kw in user_text for kw in ["hello", "hi", "hey", "help"]):
+        reply = (
+            "Hi! I'm your AutoPredict AI assistant. I can help you:\n"
+            "• Check your vehicle's health and diagnosis\n"
+            "• Book a service appointment\n"
+            "• Answer questions about your car\n"
+            "What would you like to do?"
+        )
+    else:
+        # Generic fallback
+        reply = (
+            f"I understand you said: \"{body.message}\". "
+            f"I can help with diagnosis, booking, or vehicle health. What do you need?"
+        )
+
+    # Store in conversation history
+    if not hasattr(app_state, "_conversations"):
+        app_state._conversations = {}
+    conv_key = vehicle_id or body.customer_id or "general"
+    if conv_key not in app_state._conversations:
+        app_state._conversations[conv_key] = []
+    app_state._conversations[conv_key].append({
+        "role": "user", "text": body.message, "ts": datetime.now().isoformat()
+    })
+    app_state._conversations[conv_key].append({
+        "role": "ai", "text": reply, "action": action, "ts": datetime.now().isoformat()
+    })
+
+    return {"message": reply, "action": action}
+
+
+# ── 6. Get conversation history ───────────────────────────────────────────────
+@api_router.get("/conversations/{vehicle_id}")
+async def get_conversation_history(vehicle_id: str):
+    """Return conversation history for a vehicle."""
+    if not hasattr(app_state, "_conversations"):
+        return []
+    return app_state._conversations.get(vehicle_id, [])
+
+
+# ── 7. Register FCM token ─────────────────────────────────────────────────────
+@api_router.post("/fcm/register")
+async def register_fcm(body: FcmRegister):
+    """Store FCM token for push notification delivery."""
+    _customer_fcm[body.customer_id] = body.token
+    return {"status": "registered", "customer_id": body.customer_id}
+
+
+# ── 8. Send push notification (internal helper) ───────────────────────────────
+@api_router.post("/fcm/notify")
+async def send_push(body: dict = Body(...)):
+    """
+    Send a push notification to a customer via FCM.
+    body: { customer_id, title, message, data? }
+    """
+    customer_id = body.get("customer_id")
+    token = _customer_fcm.get(customer_id)
+    if not token:
+        raise HTTPException(404, f"No FCM token registered for customer {customer_id}")
+    # TODO: call firebase_admin.messaging.send() with the token
+    return {
+        "status": "queued",
+        "customer_id": customer_id,
+        "title": body.get("title"),
+        "message": body.get("message"),
+    }

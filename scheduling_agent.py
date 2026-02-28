@@ -1583,3 +1583,8 @@ class SchedulingAgent:
 
         return [b for b in self._bookings.values() if b.customer_id == customer_id]
 
+    def find_optimal_slot(self, component: str, priority: str,
+                          preferred_time: Optional[str] = None) -> Optional[Dict]:
+        """Alias for find_best_slot — called by DiagnosisOrchestrator."""
+        return self.find_best_slot(component, priority, preferred_time)
+

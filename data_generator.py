@@ -67,6 +67,46 @@ class VehicleDataGenerator:
             "engine_rpm": random.randint(800, 3000),
             "speed_kmh": random.randint(0, 80)
         }
+
+    def generate_telematics_history(self, vehicle_id: str,
+                                    scenario: str = "normal",
+                                    days: int = 7) -> list:
+        """
+        Generate a list of daily telematics snapshots over `days` days.
+        For critical/warning scenarios the values degrade slightly each day
+        to produce realistic trend lines for frontend charts.
+        """
+        history = []
+        now = datetime.now()
+
+        DEGRADATION = {
+            "critical": {"brake_pad_mm": -0.1, "battery_voltage_v": -0.02, "coolant_temp_c": +0.5},
+            "warning":  {"brake_pad_mm": -0.05, "battery_voltage_v": -0.01, "coolant_temp_c": +0.2},
+            "normal":   {"brake_pad_mm": 0.0,   "battery_voltage_v": 0.0,   "coolant_temp_c": 0.0},
+        }
+        deg = DEGRADATION.get(scenario, DEGRADATION["normal"])
+
+        # Generate the most recent snapshot as the baseline
+        base = self.generate_telematics_timeseries(vehicle_id, scenario)
+
+        for i in range(days - 1, -1, -1):
+            day_dt = now - timedelta(days=i)
+            factor = i  # days ago — the further back, the less degraded
+
+            snap = {
+                **base,
+                "timestamp": day_dt.isoformat(),
+                "day": day_dt.strftime("%a"),
+                "brake_pad_mm": round(base["brake_pad_mm"] + deg["brake_pad_mm"] * factor, 2),
+                "battery_voltage_v": round(base["battery_voltage_v"] + deg["battery_voltage_v"] * factor, 2),
+                "coolant_temp_c": round(base["coolant_temp_c"] + deg["coolant_temp_c"] * factor, 1),
+                # Add minor daily noise
+                "engine_rpm": random.randint(700, 3200),
+                "speed_kmh": random.randint(0, 90),
+            }
+            history.append(snap)
+
+        return history
     
     def generate_vehicle_master(self, vehicle_id: str) -> Dict:
         """Generate vehicle master data"""

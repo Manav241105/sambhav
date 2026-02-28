@@ -160,7 +160,6 @@ export default function OperationsLayout() {
                 onVehicleUpdated={fetchAll}
                 onConversationTurn={fetchAll}
             />
-            <AlertBanner alerts={alerts} onDismiss={dismissAlert} onClickAlert={selectFromAlert} />
             <Outlet context={ctx} />
         </DashboardLayout>
     );
