@@ -1,8 +1,7 @@
-import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/colors.dart';
-import '../../core/theme/typography.dart';
 import '../../shared/widgets/stat_card.dart';
 import '../../shared/widgets/speedometer_gauge.dart';
 import '../../shared/widgets/vehicle_pod.dart';
@@ -11,33 +10,28 @@ import '../../shared/widgets/floating_nav_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   int _navIndex = 0;
-  double _speed = 56.5;
-
-  final List<Widget> _tabs = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabs.addAll([
-      const _DashboardTab(),
-      const Center(child: Text('Documents')),
-      const Center(child: Text('Vehicle')),
-      const Center(child: Text('Music')),
-      const Center(child: Text('Settings')),
-    ]);
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBg,
-      body: _tabs[_navIndex],
+      body: IndexedStack(
+        index: _navIndex,
+        children: [
+          const _DashboardTab(),
+          const Center(child: Text('Battery')),
+          const Center(child: Text('Parking')),
+          const Center(child: Text('Audio')),
+          const Center(child: Text('Settings')),
+        ],
+      ),
       bottomNavigationBar: FloatingNavBar(
         currentIndex: _navIndex,
         onTap: (i) => setState(() => _navIndex = i),
@@ -51,86 +45,207 @@ class _DashboardTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            children: [
-              // ── 3 Stat Cards ──────────────────────────────
-              Row(
+    // Use LayoutBuilder so widths are always constrained to the real screen
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        // Card width = (screen - 2*outerPad - 2*gap) / 3
+        final cardW = (w - 32 - 20) / 3;
+
+        return SafeArea(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(child: StatCard(label: 'Consumption', value: '14', unit: 'ep/100', tint: kCardBlue)),
-                  const SizedBox(width: 8),
-                  Expanded(child: StatCard(label: 'Avg. speed', value: '56.5', unit: 'mps', tint: kCardYellow)),
-                  const SizedBox(width: 8),
-                  Expanded(child: StatCard(label: 'Consumption', value: '06', unit: 'ep/100', tint: kCardGreen)),
+                  const SizedBox(height: 4),
+
+                  // ── Header ─────────────────────────────────────
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Dashboard',
+                            style: GoogleFonts.inter(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: kDark,
+                            ),
+                          ),
+                          Text(
+                            'Live vehicle stats',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w400,
+                              color: kMid,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Glassmorphism notification bell
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  width: 1),
+                              boxShadow: const [neuShadowDark, neuShadowLight],
+                            ),
+                            child: const Icon(Icons.notifications_outlined,
+                                size: 17, color: kMid),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // ── 3 Stat Cards (fixed width to avoid overflow) ──
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: cardW,
+                        child: StatCard(
+                          label: 'Consumption',
+                          value: '14',
+                          unit: 'ep100',
+                          tint: kCard1Gradient[0],
+                          gradient: kCard1Gradient,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        width: cardW,
+                        child: StatCard(
+                          label: 'Avg. speed',
+                          value: '56.5',
+                          unit: 'mps',
+                          tint: kCard2Gradient[0],
+                          gradient: kCard2Gradient,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        width: cardW,
+                        child: StatCard(
+                          label: 'Consumption',
+                          value: '06',
+                          unit: 'ep100',
+                          tint: kCard3Gradient[0],
+                          gradient: kCard3Gradient,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ── Speedometer ─────────────────────────────────
+                  const SpeedometerGauge(value: 56.5, max: 120),
+
+                  const SizedBox(height: 6),
+
+                  // ── Fuel row ────────────────────────────────────
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.local_gas_station,
+                          size: 15, color: kFuelOrange),
+                      const SizedBox(width: 5),
+                      Text(
+                        '200 ml',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: kFuelOrange,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ── Vehicle Status Row (pods + car) ─────────────
+                  SizedBox(
+                    height: 310,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Left pod
+                        Flexible(
+                          flex: 1,
+                          child: SizedBox(
+                            height: 270,
+                            child: VehiclePod(
+                              headerIcon: Icons.light_outlined,
+                              topIcon: Icons.light_outlined,
+                              topValue: '0',
+                              topStatus: '0°F  100%',
+                              middleIcon: Icons.thermostat_outlined,
+                              middleValue: '0°F',
+                              middleStatus: '100%',
+                              bottomIcon: Icons.local_gas_station,
+                              bottomValue: '25 L',
+                              bottomColor: kGood,
+                              alignRight: false,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        // Center car — width matches GIF
+                        const SizedBox(
+                          width: 200,
+                          child: CarTopView(timeMin: 56, distanceMi: 56),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        // Right pod
+                        Flexible(
+                          flex: 1,
+                          child: SizedBox(
+                            height: 270,
+                            child: VehiclePod(
+                              headerIcon: Icons.directions_car_outlined,
+                              topIcon: Icons.directions_car_outlined,
+                              topValue: '0',
+                              topStatus: '0°F  100%',
+                              middleIcon: Icons.thermostat_outlined,
+                              middleValue: '0°F',
+                              middleStatus: '100%',
+                              bottomIcon: Icons.battery_charging_full_outlined,
+                              bottomValue: '40%',
+                              bottomColor: kGood,
+                              alignRight: true,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
                 ],
               ),
-              const SizedBox(height: 24),
-
-              // ── Speedometer Gauge ─────────────────────────
-              SpeedometerGauge(value: 56.5, max: 120),
-              const SizedBox(height: 6),
-
-              // ── Fuel row ──────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.local_gas_station, size: 16, color: Color(0xFF6B7280)),
-                  const SizedBox(width: 6),
-                  Text('200 ml', style: kCaption()),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // ── Vehicle Status (2 pods + car) ─────────────
-              SizedBox(
-                height: 260,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Left pod
-                    Expanded(
-                      child: VehiclePod(
-                        topIcon: Icons.tire_repair,
-                        topValue: '0',
-                        topStatus: '0°F  100%',
-                        bottomIcon: Icons.local_gas_station,
-                        bottomValue: '25 L',
-                        bottomColor: kFuelOrange,
-                        headerIcon: Icons.volume_up_outlined,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-
-                    // Center car
-                    const CarTopView(timeMin: 56, distanceMi: 56),
-
-                    const SizedBox(width: 12),
-
-                    // Right pod
-                    Expanded(
-                      child: VehiclePod(
-                        topIcon: Icons.lock_outline,
-                        topValue: '0',
-                        topStatus: '0°F  100%',
-                        bottomIcon: Icons.thermostat_outlined,
-                        bottomValue: '40%',
-                        bottomColor: kTempYellow,
-                        headerIcon: Icons.directions_car_outlined,
-                        alignRight: true,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 100), // nav bar clearance
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

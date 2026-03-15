@@ -1,0 +1,39 @@
+Analyzing stat_card.dart, speedometer_gauge.dart, vehicle_pod.dart, car_top_view.dart, floating_nav_bar.dart, home_screen.dart, colors.dart...
+
+warning - lib\shared\widgets\car_top_view.dart:1:8 - Unused import: 'dart:math'. Try removing the import directive. - unused_import
+warning - lib\shared\widgets\floating_nav_bar.dart:2:8 - Unused import: 'package:google_fonts/google_fonts.dart'. Try removing the import directive. - unused_import
+warning - lib\shared\widgets\speedometer_gauge.dart:153:40 - Dead code. Try removing the code, or fixing the code before it so that it can be reached. - dead_code
+warning - lib\shared\widgets\speedometer_gauge.dart:159:33 - Dead code. Try removing the code, or fixing the code before it so that it can be reached. - dead_code
+   info - lib\features\home\home_screen.dart:26:19 - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal. - prefer_const_literals_to_create_immutables
+   info - lib\features\home\home_screen.dart:85:33 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\features\home\home_screen.dart:88:34 - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal. - prefer_const_literals_to_create_immutables
+   info - lib\features\home\home_screen.dart:164:15 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\features\home\home_screen.dart:166:24 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\features\home\home_screen.dart:168:29 - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal. - prefer_const_literals_to_create_immutables
+   info - lib\features\home\home_screen.dart:170:21 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\features\home\home_screen.dart:171:30 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\features\home\home_screen.dart:194:21 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\features\home\home_screen.dart:195:30 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\shared\widgets\car_top_view.dart:66:37 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\shared\widgets\car_top_view.dart:71:37 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\shared\widgets\car_top_view.dart:114:29 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\shared\widgets\car_top_view.dart:116:27 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\shared\widgets\car_top_view.dart:121:29 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\shared\widgets\car_top_view.dart:142:25 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\shared\widgets\car_top_view.dart:229:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\shared\widgets\car_top_view.dart:269:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\shared\widgets\car_top_view.dart:326:26 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\shared\widgets\floating_nav_bar.dart:92:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\shared\widgets\speedometer_gauge.dart:103:5 - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const'. - prefer_const_declarations
+   info - lib\shared\widgets\speedometer_gauge.dart:104:5 - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const'. - prefer_const_declarations
+   info - lib\shared\widgets\speedometer_gauge.dart:152:7 - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const'. - prefer_const_declarations
+   info - lib\shared\widgets\speedometer_gauge.dart:158:59 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\shared\widgets\speedometer_gauge.dart:159:60 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\shared\widgets\speedometer_gauge.dart:174:20 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\shared\widgets\speedometer_gauge.dart:212:34 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\shared\widgets\stat_card.dart:36:20 - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal. - prefer_const_literals_to_create_immutables
+   info - lib\shared\widgets\vehicle_pod.dart:42:20 - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal. - prefer_const_literals_to_create_immutables
+   info - lib\shared\widgets\vehicle_pod.dart:149:19 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\shared\widgets\vehicle_pod.dart:152:20 - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal. - prefer_const_literals_to_create_immutables
+
+35 issues found.
