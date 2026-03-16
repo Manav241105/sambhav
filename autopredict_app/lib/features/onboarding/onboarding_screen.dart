@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 
@@ -24,8 +25,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: kBg,
+      backgroundColor: colors.scaffoldBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -45,7 +48,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
                 width: _page == i ? 24 : 8, height: 8,
                 decoration: BoxDecoration(
-                  color: _page == i ? kAccent : kSubtle,
+                  color: _page == i ? kAccent : colors.neuBg,
                   borderRadius: BorderRadius.circular(rFull),
                 ),
               )),
@@ -91,6 +94,8 @@ class _SlidePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
@@ -98,13 +103,16 @@ class _SlidePage extends StatelessWidget {
         children: [
           Container(
             width: 120, height: 120,
-            decoration: BoxDecoration(color: kAccent.withOpacity(0.15), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: kAccent.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
             child: Icon(data.icon, size: 56, color: kAccent),
           ),
           const SizedBox(height: 40),
-          Text(data.title, style: kTitle(), textAlign: TextAlign.center),
+          Text(data.title, style: kTitle(color: colors.textPrimary), textAlign: TextAlign.center),
           const SizedBox(height: 16),
-          Text(data.body, style: kBody(), textAlign: TextAlign.center),
+          Text(data.body, style: kBody(color: colors.textSecondary), textAlign: TextAlign.center),
         ],
       ),
     );

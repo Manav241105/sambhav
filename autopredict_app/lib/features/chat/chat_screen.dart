@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 
@@ -23,7 +24,6 @@ class _ChatScreenState extends State<ChatScreen> {
       _messages.add(_Msg(isAI: false, text: text, action: null));
       _ctrl.clear();
     });
-    // Simulate AI reply
     Future.delayed(const Duration(milliseconds: 800), () {
       if (!mounted) return;
       setState(() => _messages.add(const _Msg(
@@ -39,13 +39,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: kBg,
+      backgroundColor: colors.scaffoldBg,
       appBar: AppBar(
-        backgroundColor: kBg, elevation: 0,
-        title: Text('AutoPredict AI', style: kSubtitle()),
+        backgroundColor: colors.scaffoldBg, elevation: 0,
+        title: Text('AutoPredict AI', style: kSubtitle(color: colors.textPrimary)),
         actions: [
-          IconButton(icon: const Icon(Icons.mic_none, color: Colors.grey), onPressed: () {}),
+          IconButton(icon: Icon(Icons.mic_none, color: colors.textSecondary), onPressed: () {}),
         ],
       ),
       body: Column(
@@ -60,17 +62,18 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           // Input bar
           Container(
-            color: kSurface,
+            color: colors.surface,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _ctrl,
+                    style: TextStyle(color: colors.textPrimary),
                     decoration: InputDecoration(
                       hintText: 'Type a message…',
-                      hintStyle: kBody(),
-                      filled: true, fillColor: kBg,
+                      hintStyle: kBody(color: colors.textHint),
+                      filled: true, fillColor: colors.inputFill,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(rFull), borderSide: BorderSide.none),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -83,7 +86,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   onTap: () => _send(_ctrl.text),
                   child: Container(
                     width: 44, height: 44,
-                    decoration: BoxDecoration(color: kAccent, shape: BoxShape.circle),
+                    decoration: const BoxDecoration(color: kAccent, shape: BoxShape.circle),
                     child: const Icon(Icons.arrow_upward, size: 20, color: Colors.black),
                   ),
                 ),
@@ -109,6 +112,8 @@ class _BubbleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Align(
@@ -120,16 +125,17 @@ class _BubbleWidget extends StatelessWidget {
               constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: msg.isAI ? kSurface : kAccent,
+                color: msg.isAI ? colors.surface : kAccent,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(rLG),
                   topRight: const Radius.circular(rLG),
                   bottomLeft: Radius.circular(msg.isAI ? rXS : rLG),
                   bottomRight: Radius.circular(msg.isAI ? rLG : rXS),
                 ),
-                boxShadow: msg.isAI ? const [cardShadow] : [],
+                boxShadow: msg.isAI ? [colors.cardShadowStyle] : [],
               ),
-              child: Text(msg.text, style: kBody(color: msg.isAI ? kDark : kDark)),
+              child: Text(msg.text,
+                  style: kBody(color: msg.isAI ? colors.textPrimary : kDark)),
             ),
             // Booking card action
             if (msg.isAI && msg.action == 'SHOW_BOOKING_CARD')
@@ -137,9 +143,10 @@ class _BubbleWidget extends StatelessWidget {
                 margin: const EdgeInsets.only(top: 8),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: kSurface, borderRadius: BorderRadius.circular(rLG),
+                  color: colors.surface,
+                  borderRadius: BorderRadius.circular(rLG),
                   border: Border.all(color: kAccent, width: 1.5),
-                  boxShadow: const [cardShadow],
+                  boxShadow: [colors.cardShadowStyle],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,12 +176,16 @@ class _InfoRow extends StatelessWidget {
   const _InfoRow({required this.icon, required this.text});
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Row(children: [
-      Icon(icon, size: 14, color: kMid),
-      const SizedBox(width: 8),
-      Text(text, style: kBody()),
-    ]),
-  );
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(children: [
+        Icon(icon, size: 14, color: colors.textSecondary),
+        const SizedBox(width: 8),
+        Text(text, style: kBody(color: colors.textSecondary)),
+      ]),
+    );
+  }
 }

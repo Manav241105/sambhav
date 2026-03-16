@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 
 /// Pastel gradient stat card — top 3 cards
@@ -22,6 +23,7 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final grad = gradient ?? [tint, tint];
     return Container(
       height: 80,
@@ -33,7 +35,7 @@ class StatCard extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(rMD),
-        boxShadow: [neuShadowDark, neuShadowLight],
+        boxShadow: [colors.neuShadow1, colors.neuShadow2],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,17 +52,21 @@ class StatCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          // Value + unit row
+          // Value + unit row — wrapped in Flexible to avoid overflow
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                value,
-                style: GoogleFonts.inter(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: kDark,
-                  height: 1.0,
+              Flexible(
+                child: Text(
+                  value,
+                  style: GoogleFonts.inter(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    color: kDark,
+                    height: 1.0,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 3),

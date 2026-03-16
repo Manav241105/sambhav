@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 
 /// Color-coded neumorphic side panel — 3 metrics with labels
@@ -33,17 +34,19 @@ class VehiclePod extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       decoration: BoxDecoration(
-        color: kNeuBg,
+        color: colors.neuBg,
         borderRadius: BorderRadius.circular(rLG),
-        boxShadow: const [neuShadowDark, neuShadowLight],
+        boxShadow: [colors.neuShadow1, colors.neuShadow2],
       ),
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Header icon (small, directional)
+          // Header icon
           Align(
             alignment:
                 alignRight ? Alignment.centerRight : Alignment.centerLeft,
@@ -51,26 +54,26 @@ class VehiclePod extends StatelessWidget {
               icon: headerIcon,
               iconSize: 14,
               size: 28,
-              iconColor: kMid,
+              iconColor: colors.textSecondary,
               glowColor: null,
             ),
           ),
 
-          // ── Row 1: Light / Car (blue tint) ───────────────
+          // ── Row 1: Light / Car ────────────────────────────
           _MetricRow(
             icon: topIcon,
-            iconColor: const Color(0xFF38BDF8),   // sky blue
+            iconColor: const Color(0xFF38BDF8),
             glowColor: const Color(0xFF38BDF8),
             label: alignRight ? 'Status' : 'Light',
             value: topValue,
-            valueColor: kDark,
+            valueColor: colors.textPrimary,
             subtext: topStatus,
           ),
 
-          // ── Row 2: Temperature (orange tint) ─────────────
+          // ── Row 2: Temperature ────────────────────────────
           _MetricRow(
             icon: middleIcon ?? Icons.thermostat_outlined,
-            iconColor: const Color(0xFFF97316),   // orange
+            iconColor: const Color(0xFFF97316),
             glowColor: const Color(0xFFF97316),
             label: 'Temp',
             value: middleValue ?? '0°F',
@@ -78,10 +81,10 @@ class VehiclePod extends StatelessWidget {
             subtext: middleStatus ?? '100%',
           ),
 
-          // ── Row 3: Fuel/Battery (green tint) ─────────────
+          // ── Row 3: Fuel/Battery ───────────────────────────
           _MetricRow(
             icon: bottomIcon,
-            iconColor: kGood,                     // green
+            iconColor: kGood,
             glowColor: kGood,
             label: alignRight ? 'Battery' : 'Fuel',
             value: bottomValue,
@@ -115,29 +118,31 @@ class _MetricRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Column(
       children: [
         _NeuCircle(
           icon: icon,
-          size: 42,
-          iconSize: 19,
+          size: 38,
+          iconSize: 17,
           iconColor: iconColor,
           glowColor: glowColor,
         ),
-        const SizedBox(height: 3),
+        const SizedBox(height: 2),
         Text(
           label,
           style: GoogleFonts.inter(
             fontSize: 9,
             fontWeight: FontWeight.w500,
-            color: kMid,
+            color: colors.textSecondary,
             letterSpacing: 0.3,
           ),
         ),
         Text(
           value,
           style: GoogleFonts.inter(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.w700,
             color: valueColor,
           ),
@@ -146,9 +151,9 @@ class _MetricRow extends StatelessWidget {
           Text(
             subtext,
             style: GoogleFonts.inter(
-              fontSize: 9,
+              fontSize: 8,
               fontWeight: FontWeight.w400,
-              color: kMid,
+              color: colors.textSecondary,
             ),
           ),
       ],
@@ -173,15 +178,17 @@ class _NeuCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: kNeuBg,
+        color: colors.neuBg,
         shape: BoxShape.circle,
         boxShadow: [
-          neuShadowDark,
-          neuShadowLight,
+          colors.neuShadow1,
+          colors.neuShadow2,
           if (glowColor != null)
             BoxShadow(
               color: glowColor!.withValues(alpha: 0.18),

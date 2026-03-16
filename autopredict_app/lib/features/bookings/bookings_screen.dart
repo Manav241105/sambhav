@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 
@@ -16,11 +17,13 @@ class BookingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: kBg,
+      backgroundColor: colors.scaffoldBg,
       appBar: AppBar(
-        backgroundColor: kBg, elevation: 0,
-        title: Text('My Bookings', style: kTitle()),
+        backgroundColor: colors.scaffoldBg, elevation: 0,
+        title: Text('My Bookings', style: kTitle(color: colors.textPrimary)),
         actions: [
           TextButton(
             onPressed: () {},
@@ -55,38 +58,49 @@ class _BookingCard extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(color: kSurface, borderRadius: BorderRadius.circular(rLG),
-      boxShadow: const [cardShadow]),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(data.service, style: kSubtitle()),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: _statusColor.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(rFull),
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(rLG),
+        boxShadow: [colors.cardShadowStyle],
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text(data.service, style: kSubtitle(color: colors.textPrimary)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: _statusColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(rFull),
+            ),
+            child: Text(data.status, style: kCaption(color: _statusColor)),
           ),
-          child: Text(data.status, style: kCaption(color: _statusColor)),
-        ),
+        ]),
+        const SizedBox(height: 10),
+        _Row(icon: Icons.calendar_today_outlined, text: '${data.date} · ${data.time}'),
+        _Row(icon: Icons.location_on_outlined, text: '${data.bay} · ${data.tech}'),
       ]),
-      const SizedBox(height: 10),
-      _Row(icon: Icons.calendar_today_outlined, text: '${data.date} · ${data.time}'),
-      _Row(icon: Icons.location_on_outlined, text: '${data.bay} · ${data.tech}'),
-    ]),
-  );
+    );
+  }
 }
 
 class _Row extends StatelessWidget {
   final IconData icon; final String text;
   const _Row({required this.icon, required this.text});
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Row(children: [
-      Icon(icon, size: 14, color: kMid), const SizedBox(width: 8),
-      Text(text, style: kBody()),
-    ]),
-  );
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(children: [
+        Icon(icon, size: 14, color: colors.textSecondary), const SizedBox(width: 8),
+        Text(text, style: kBody(color: colors.textSecondary)),
+      ]),
+    );
+  }
 }

@@ -1,12 +1,14 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 import '../../shared/widgets/stat_card.dart';
 import '../../shared/widgets/speedometer_gauge.dart';
 import '../../shared/widgets/vehicle_pod.dart';
 import '../../shared/widgets/car_top_view.dart';
 import '../../shared/widgets/floating_nav_bar.dart';
+import 'settings_tab.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,16 +22,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: kBg,
+      backgroundColor: colors.scaffoldBg,
       body: IndexedStack(
         index: _navIndex,
         children: [
           const _DashboardTab(),
-          const Center(child: Text('Battery')),
-          const Center(child: Text('Parking')),
-          const Center(child: Text('Audio')),
-          const Center(child: Text('Settings')),
+          Center(child: Text('Battery',
+              style: TextStyle(color: colors.textPrimary))),
+          Center(child: Text('Parking',
+              style: TextStyle(color: colors.textPrimary))),
+          Center(child: Text('Audio',
+              style: TextStyle(color: colors.textPrimary))),
+          const SettingsTab(),
         ],
       ),
       bottomNavigationBar: FloatingNavBar(
@@ -45,11 +52,11 @@ class _DashboardTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use LayoutBuilder so widths are always constrained to the real screen
+    final colors = context.appColors;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
-        // Card width = (screen - 2*outerPad - 2*gap) / 3
         final cardW = (w - 32 - 20) / 3;
 
         return SafeArea(
@@ -74,7 +81,7 @@ class _DashboardTab extends StatelessWidget {
                             style: GoogleFonts.inter(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
-                              color: kDark,
+                              color: colors.textPrimary,
                             ),
                           ),
                           Text(
@@ -82,7 +89,7 @@ class _DashboardTab extends StatelessWidget {
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: FontWeight.w400,
-                              color: kMid,
+                              color: colors.textSecondary,
                             ),
                           ),
                         ],
@@ -96,15 +103,18 @@ class _DashboardTab extends StatelessWidget {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.6),
+                              color: colors.surface.withValues(alpha: 0.6),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.8),
+                                  color: colors.surface.withValues(alpha: 0.8),
                                   width: 1),
-                              boxShadow: const [neuShadowDark, neuShadowLight],
+                              boxShadow: [
+                                colors.neuShadow1,
+                                colors.neuShadow2
+                              ],
                             ),
-                            child: const Icon(Icons.notifications_outlined,
-                                size: 17, color: kMid),
+                            child: Icon(Icons.notifications_outlined,
+                                size: 17, color: colors.textSecondary),
                           ),
                         ),
                       ),
@@ -113,7 +123,7 @@ class _DashboardTab extends StatelessWidget {
 
                   const SizedBox(height: 14),
 
-                  // ── 3 Stat Cards (fixed width to avoid overflow) ──
+                  // ── 3 Stat Cards ───────────────────────────────
                   Row(
                     children: [
                       SizedBox(
@@ -180,7 +190,7 @@ class _DashboardTab extends StatelessWidget {
 
                   // ── Vehicle Status Row (pods + car) ─────────────
                   SizedBox(
-                    height: 310,
+                    height: 280,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -188,7 +198,7 @@ class _DashboardTab extends StatelessWidget {
                         Flexible(
                           flex: 1,
                           child: SizedBox(
-                            height: 270,
+                            height: 250,
                             child: VehiclePod(
                               headerIcon: Icons.light_outlined,
                               topIcon: Icons.light_outlined,
@@ -207,9 +217,9 @@ class _DashboardTab extends StatelessWidget {
 
                         const SizedBox(width: 8),
 
-                        // Center car — width matches GIF
+                        // Center car
                         const SizedBox(
-                          width: 200,
+                          width: 170,
                           child: CarTopView(timeMin: 56, distanceMi: 56),
                         ),
 
@@ -219,7 +229,7 @@ class _DashboardTab extends StatelessWidget {
                         Flexible(
                           flex: 1,
                           child: SizedBox(
-                            height: 270,
+                            height: 250,
                             child: VehiclePod(
                               headerIcon: Icons.directions_car_outlined,
                               topIcon: Icons.directions_car_outlined,
@@ -228,7 +238,8 @@ class _DashboardTab extends StatelessWidget {
                               middleIcon: Icons.thermostat_outlined,
                               middleValue: '0°F',
                               middleStatus: '100%',
-                              bottomIcon: Icons.battery_charging_full_outlined,
+                              bottomIcon:
+                                  Icons.battery_charging_full_outlined,
                               bottomValue: '40%',
                               bottomColor: kGood,
                               alignRight: true,

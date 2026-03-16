@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 
@@ -17,20 +18,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _sendOtp() async {
     setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 1)); // TODO: call backend
+    await Future.delayed(const Duration(seconds: 1));
     setState(() { _otpSent = true; _loading = false; });
   }
 
   Future<void> _verify() async {
     setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 1)); // TODO: call backend
+    await Future.delayed(const Duration(seconds: 1));
     if (mounted) context.go('/home');
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: kBg,
+      backgroundColor: colors.scaffoldBg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(28),
@@ -38,16 +41,16 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
-              Text('Welcome Back', style: kTitle()),
+              Text('Welcome Back', style: kTitle(color: colors.textPrimary)),
               const SizedBox(height: 8),
-              Text('Sign in to continue', style: kBody()),
+              Text('Sign in to continue', style: kBody(color: colors.textSecondary)),
               const SizedBox(height: 48),
 
               // Phone field
               _Field(controller: _phone, hint: 'Phone number', type: TextInputType.phone),
               const SizedBox(height: 16),
 
-              // OTP field (after send)
+              // OTP field
               if (_otpSent) ...[
                 _Field(controller: _otp, hint: 'Enter OTP', type: TextInputType.number),
                 const SizedBox(height: 16),
@@ -68,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
 
               const Spacer(),
-              Center(child: Text('v1.0.0 · AutoPredict', style: kCaption())),
+              Center(child: Text('v1.0.0 · AutoPredict', style: kCaption(color: colors.textSecondary))),
             ],
           ),
         ),
@@ -85,13 +88,16 @@ class _Field extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return TextField(
       controller: controller,
       keyboardType: type,
+      style: TextStyle(color: colors.textPrimary),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: kBody(),
-        filled: true, fillColor: kSurface,
+        hintStyle: kBody(color: colors.textHint),
+        filled: true, fillColor: colors.surface,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(rMD), borderSide: BorderSide.none),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),

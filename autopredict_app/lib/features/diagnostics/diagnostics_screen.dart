@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 
@@ -16,13 +17,15 @@ class DiagnosticsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: kBg,
+      backgroundColor: colors.scaffoldBg,
       appBar: AppBar(
-        backgroundColor: kBg, elevation: 0,
-        title: Text('Diagnostics', style: kTitle()),
+        backgroundColor: colors.scaffoldBg, elevation: 0,
+        title: Text('Diagnostics', style: kTitle(color: colors.textPrimary)),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh, color: Colors.grey), onPressed: () {}),
+          IconButton(icon: Icon(Icons.refresh, color: colors.textSecondary), onPressed: () {}),
         ],
       ),
       body: Padding(
@@ -32,20 +35,23 @@ class DiagnosticsScreen extends StatelessWidget {
             // Overall health bar
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: kSurface, borderRadius: BorderRadius.circular(rLG),
-                boxShadow: const [cardShadow]),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(rLG),
+                boxShadow: [colors.cardShadowStyle],
+              ),
               child: Row(
                 children: [
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Overall Health', style: kLabel()),
+                      Text('Overall Health', style: kLabel(color: colors.textSecondary)),
                       const SizedBox(height: 8),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(rFull),
                         child: LinearProgressIndicator(
                           value: 0.82, minHeight: 8,
-                          backgroundColor: kSubtle,
+                          backgroundColor: colors.neuBg,
                           valueColor: const AlwaysStoppedAnimation(kGaugeFill),
                         ),
                       ),
@@ -94,10 +100,15 @@ class _ComponentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: kSurface, borderRadius: BorderRadius.circular(rLG),
-        boxShadow: const [cardShadow]),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(rLG),
+        boxShadow: [colors.cardShadowStyle],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -105,13 +116,13 @@ class _ComponentCard extends StatelessWidget {
           Row(children: [
             Icon(data.icon, size: 18, color: _statusColor),
             const SizedBox(width: 8),
-            Expanded(child: Text(data.name, style: kLabel())),
+            Expanded(child: Text(data.name, style: kLabel(color: colors.textSecondary))),
           ]),
-          Text(data.reading, style: kStatValue().copyWith(fontSize: 20)),
+          Text(data.reading, style: kStatValue(color: colors.textPrimary).copyWith(fontSize: 20)),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: _statusColor.withOpacity(0.12),
+              color: _statusColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(rFull),
             ),
             child: Text(data.status.toUpperCase(), style: kCaption(color: _statusColor)),

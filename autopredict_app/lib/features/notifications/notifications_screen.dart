@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 
@@ -17,34 +18,48 @@ class NotificationsScreen extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: kBg,
-    appBar: AppBar(backgroundColor: kBg, elevation: 0, title: Text('Notifications', style: kTitle())),
-    body: ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: _items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, i) {
-        final n = _items[i];
-        return Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(color: kSurface, borderRadius: BorderRadius.circular(rLG),
-            boxShadow: const [cardShadow]),
-          child: Row(children: [
-            Container(width: 42, height: 42,
-              decoration: BoxDecoration(color: n.color.withOpacity(0.12), shape: BoxShape.circle),
-              child: Icon(n.icon, size: 20, color: n.color)),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(n.title, style: kLabel(color: kDark)),
-              Text(n.body, style: kCaption()),
-            ])),
-            Text(n.time, style: kCaption()),
-          ]),
-        );
-      },
-    ),
-  );
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Scaffold(
+      backgroundColor: colors.scaffoldBg,
+      appBar: AppBar(
+        backgroundColor: colors.scaffoldBg,
+        elevation: 0,
+        title: Text('Notifications', style: kTitle(color: colors.textPrimary)),
+      ),
+      body: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: _items.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        itemBuilder: (_, i) {
+          final n = _items[i];
+          return Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(rLG),
+              boxShadow: [colors.cardShadowStyle],
+            ),
+            child: Row(children: [
+              Container(width: 42, height: 42,
+                decoration: BoxDecoration(
+                  color: n.color.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(n.icon, size: 20, color: n.color)),
+              const SizedBox(width: 12),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(n.title, style: kLabel(color: colors.textPrimary)),
+                Text(n.body, style: kCaption(color: colors.textSecondary)),
+              ])),
+              Text(n.time, style: kCaption(color: colors.textSecondary)),
+            ]),
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _NotifData {

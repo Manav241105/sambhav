@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 
 /// Animated floating car GIF with info circle — no background box, no tap overlays
@@ -50,8 +51,8 @@ class _CarTopViewState extends State<CarTopView>
               // Car GIF
               Image.asset(
                 'assets/images/car_home.gif',
-                width: 200,
-                height: 200,
+                width: 170,
+                height: 170,
                 fit: BoxFit.contain,
               ),
 
@@ -77,13 +78,15 @@ class _OverlayCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       width: 70,
       height: 70,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white.withValues(alpha: 0.7),
-        border: Border.all(color: kCarGlow.withValues(alpha: 0.45), width: 1),
+        color: colors.overlayCircleBg,
+        border: Border.all(color: colors.overlayCircleBorder, width: 1),
         boxShadow: [
           BoxShadow(
             color: kCarGlow.withValues(alpha: 0.2),
@@ -100,7 +103,7 @@ class _OverlayCircle extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 10,
               fontWeight: FontWeight.w600,
-              color: kDark,
+              color: colors.textPrimary,
             ),
           ),
           Container(
@@ -118,7 +121,7 @@ class _OverlayCircle extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 10,
               fontWeight: FontWeight.w600,
-              color: kDark,
+              color: colors.textPrimary,
             ),
           ),
         ],

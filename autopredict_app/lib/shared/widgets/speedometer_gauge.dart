@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 
 class SpeedometerGauge extends StatefulWidget {
@@ -23,14 +24,12 @@ class _SpeedometerGaugeState extends State<SpeedometerGauge>
   void initState() {
     super.initState();
 
-    // Needle animation
     _needleCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1400));
     _needleAnim = Tween<double>(begin: 0, end: widget.value)
         .animate(CurvedAnimation(parent: _needleCtrl, curve: Curves.easeOutCubic));
     _needleCtrl.forward();
 
-    // Glow pulse animation
     _glowCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1500))
       ..repeat(reverse: true);
@@ -59,6 +58,8 @@ class _SpeedometerGaugeState extends State<SpeedometerGauge>
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return AnimatedBuilder(
       animation: Listenable.merge([_needleAnim, _glowAnim]),
       builder: (_, __) {
@@ -67,16 +68,19 @@ class _SpeedometerGaugeState extends State<SpeedometerGauge>
           width: 270,
           height: 270,
           child: CustomPaint(
-            painter: _SpeedometerPainter(value: speed, max: widget.max),
+            painter: _SpeedometerPainter(
+              value: speed,
+              max: widget.max,
+              trackColor: colors.gaugeTrackColor,
+              labelInactiveColor: colors.textSecondary,
+            ),
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Glowing speed value
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      // Outer glow
                       Text(
                         speed.toStringAsFixed(1),
                         style: GoogleFonts.inter(
@@ -91,13 +95,12 @@ class _SpeedometerGaugeState extends State<SpeedometerGauge>
                           ],
                         ),
                       ),
-                      // Main text
                       Text(
                         speed.toStringAsFixed(1),
                         style: GoogleFonts.inter(
                           fontSize: 50,
                           fontWeight: FontWeight.w800,
-                          color: kDark,
+                          color: colors.textPrimary,
                           height: 1.0,
                         ),
                       ),
@@ -109,7 +112,7 @@ class _SpeedometerGaugeState extends State<SpeedometerGauge>
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
-                      color: kMid,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ],
@@ -125,10 +128,16 @@ class _SpeedometerGaugeState extends State<SpeedometerGauge>
 class _SpeedometerPainter extends CustomPainter {
   final double value;
   final double max;
+  final Color trackColor;
+  final Color labelInactiveColor;
 
-  _SpeedometerPainter({required this.value, required this.max});
+  _SpeedometerPainter({
+    required this.value,
+    required this.max,
+    required this.trackColor,
+    required this.labelInactiveColor,
+  });
 
-  // Gradient colours: green → yellow → orange → red
   Color _gaugeColor(double t) {
     if (t < 0.33) {
       return Color.lerp(const Color(0xFF22C55E), const Color(0xFFEAB308), t / 0.33)!;
@@ -152,13 +161,13 @@ class _SpeedometerPainter extends CustomPainter {
 
     // ── 1. Background track ───────────────────────────────
     final trackPaint = Paint()
-      ..color = const Color(0xFFE0E0E0)
+      ..color = trackColor
       ..strokeWidth = 16
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
     canvas.drawArc(rect, startRad, sweepRad, false, trackPaint);
 
-    // ── 2. Gradient filled arc (green→yellow→orange→red) ──
+    // ── 2. Gradient filled arc ─────────────────────────────
     final fillFrac = (value / max).clamp(0.0, 1.0);
     final fillSweep = fillFrac * sweepRad;
 
@@ -178,7 +187,6 @@ class _SpeedometerPainter extends CustomPainter {
         canvas.drawArc(rect, segStart, segSweep + 0.01, false, paint);
       }
 
-      // Glow on leading tip of arc
       final tipAngle = startRad + fillSweep;
       final tipPoint = center +
           Offset(math.cos(tipAngle) * radius, math.sin(tipAngle) * radius);
@@ -188,7 +196,7 @@ class _SpeedometerPainter extends CustomPainter {
       canvas.drawCircle(tipPoint, 8, glowPaint);
     }
 
-    // ── 3. Tick marks (13 ticks = 0…120, every 10mph) ────
+    // ── 3. Tick marks ─────────────────────────────────────
     for (int i = 0; i <= 12; i++) {
       final t = i / 12.0;
       final angle = startRad + t * sweepRad;
@@ -200,7 +208,7 @@ class _SpeedometerPainter extends CustomPainter {
       final active = t <= fillFrac;
       final tickColor = active
           ? _gaugeColor(t).withValues(alpha: 0.9)
-          : const Color(0xFFCCCCCC);
+          : trackColor;
 
       canvas.drawLine(
         center + Offset(math.cos(angle) * innerR, math.sin(angle) * innerR),
@@ -211,16 +219,16 @@ class _SpeedometerPainter extends CustomPainter {
           ..strokeCap = StrokeCap.round,
       );
 
-      // Speed labels every 30
+      // Speed labels every 30 — pulled inward to fix overflow
       if (i % 3 == 0) {
         final labelVal = (t * max).round();
-        final labelR = radius + 16;
+        final labelR = radius + 12; // was +16, reduced to fix overflow
         final tp = TextPainter(
           text: TextSpan(
             text: '$labelVal',
             style: TextStyle(
               fontSize: 10,
-              color: active ? _gaugeColor(t) : kMid,
+              color: active ? _gaugeColor(t) : labelInactiveColor,
               fontWeight: active ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
@@ -239,7 +247,6 @@ class _SpeedometerPainter extends CustomPainter {
         Offset(math.cos(needleAngle) * needleLen,
             math.sin(needleAngle) * needleLen);
 
-    // Needle shadow glow
     canvas.drawLine(
       center,
       needleEnd,
@@ -249,7 +256,6 @@ class _SpeedometerPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
     );
-    // Needle body
     canvas.drawLine(
       center,
       needleEnd,
@@ -259,7 +265,6 @@ class _SpeedometerPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round,
     );
 
-    // Center pivot ring
     canvas.drawCircle(
         center, 8,
         Paint()..color = _gaugeColor(fillFrac)..style = PaintingStyle.fill);
@@ -272,5 +277,6 @@ class _SpeedometerPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_SpeedometerPainter old) => old.value != value;
+  bool shouldRepaint(_SpeedometerPainter old) =>
+      old.value != value || old.trackColor != trackColor;
 }

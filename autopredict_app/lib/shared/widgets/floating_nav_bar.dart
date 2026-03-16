@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 
 class FloatingNavBar extends StatefulWidget {
@@ -21,7 +22,6 @@ class _FloatingNavBarState extends State<FloatingNavBar>
     with SingleTickerProviderStateMixin {
   late AnimationController _glowCtrl;
   late Animation<double> _glowAnim;
-  // Track which button is being pressed for scale effect
   int? _pressedIndex;
 
   @override
@@ -52,12 +52,14 @@ class _FloatingNavBarState extends State<FloatingNavBar>
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       height: 80,
-      decoration: const BoxDecoration(
-        color: kNavBg,
-        border: Border(top: BorderSide(color: Color(0xFFEEEEEE), width: 1)),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: colors.navBg,
+        border: Border(top: BorderSide(color: colors.navBorder, width: 1)),
+        boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
             blurRadius: 20,
@@ -108,7 +110,7 @@ class _FloatingNavBarState extends State<FloatingNavBar>
                     border: isActive
                         ? null
                         : Border.all(
-                            color: const Color(0xFFDDDDDD), width: 1.2),
+                            color: colors.navBorder, width: 1.2),
                   ),
                   child: child,
                 ),
@@ -118,7 +120,7 @@ class _FloatingNavBarState extends State<FloatingNavBar>
                     Icon(
                       _icons[i],
                       size: 20,
-                      color: isActive ? Colors.black87 : kNavIcon,
+                      color: isActive ? Colors.black87 : colors.textSecondary,
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -127,7 +129,7 @@ class _FloatingNavBarState extends State<FloatingNavBar>
                         fontSize: 9,
                         fontWeight:
                             isActive ? FontWeight.w600 : FontWeight.w400,
-                        color: isActive ? Colors.black87 : kNavIcon,
+                        color: isActive ? Colors.black87 : colors.textSecondary,
                       ),
                     ),
                   ],
