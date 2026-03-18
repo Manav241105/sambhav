@@ -42,56 +42,65 @@ class VehiclePod extends StatelessWidget {
         borderRadius: BorderRadius.circular(rLG),
         boxShadow: [colors.neuShadow1, colors.neuShadow2],
       ),
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          // Header icon
-          Align(
-            alignment:
-                alignRight ? Alignment.centerRight : Alignment.centerLeft,
-            child: _NeuCircle(
-              icon: headerIcon,
-              iconSize: 14,
-              size: 28,
-              iconColor: colors.textSecondary,
-              glowColor: null,
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            // Header icon
+            Align(
+              alignment:
+                  alignRight ? Alignment.centerRight : Alignment.centerLeft,
+              child: _NeuCircle(
+                icon: headerIcon,
+                iconSize: 12,
+                size: 24,
+                iconColor: colors.textSecondary,
+                glowColor: null,
+              ),
             ),
-          ),
 
-          // ── Row 1: Light / Car ────────────────────────────
-          _MetricRow(
-            icon: topIcon,
-            iconColor: const Color(0xFF38BDF8),
-            glowColor: const Color(0xFF38BDF8),
-            label: alignRight ? 'Status' : 'Light',
-            value: topValue,
-            valueColor: colors.textPrimary,
-            subtext: topStatus,
-          ),
+            const SizedBox(height: 4),
 
-          // ── Row 2: Temperature ────────────────────────────
-          _MetricRow(
-            icon: middleIcon ?? Icons.thermostat_outlined,
-            iconColor: const Color(0xFFF97316),
-            glowColor: const Color(0xFFF97316),
-            label: 'Temp',
-            value: middleValue ?? '0°F',
-            valueColor: const Color(0xFFF97316),
-            subtext: middleStatus ?? '100%',
-          ),
+            // ── Row 1: Light / Car ────────────────────────────
+            _MetricRow(
+              icon: topIcon,
+              iconColor: const Color(0xFF38BDF8),
+              glowColor: const Color(0xFF38BDF8),
+              label: alignRight ? 'Status' : 'Light',
+              value: topValue,
+              valueColor: colors.textPrimary,
+              subtext: topStatus,
+            ),
 
-          // ── Row 3: Fuel/Battery ───────────────────────────
-          _MetricRow(
-            icon: bottomIcon,
-            iconColor: kGood,
-            glowColor: kGood,
-            label: alignRight ? 'Battery' : 'Fuel',
-            value: bottomValue,
-            valueColor: kGood,
-            subtext: '',
-          ),
-        ],
+            const SizedBox(height: 4),
+
+            // ── Row 2: Temperature ────────────────────────────
+            _MetricRow(
+              icon: middleIcon ?? Icons.thermostat_outlined,
+              iconColor: const Color(0xFFF97316),
+              glowColor: const Color(0xFFF97316),
+              label: 'Temp',
+              value: middleValue ?? '0°F',
+              valueColor: const Color(0xFFF97316),
+              subtext: middleStatus ?? '100%',
+            ),
+
+            const SizedBox(height: 4),
+
+            // ── Row 3: Fuel/Battery ───────────────────────────
+            _MetricRow(
+              icon: bottomIcon,
+              iconColor: kGood,
+              glowColor: kGood,
+              label: alignRight ? 'Battery' : 'Fuel',
+              value: bottomValue,
+              valueColor: kGood,
+              subtext: '',
+            ),
+          ],
+        ),
       ),
     );
   }

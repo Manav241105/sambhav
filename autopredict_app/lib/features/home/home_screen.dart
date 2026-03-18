@@ -1,58 +1,82 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
+import '../../core/providers/vehicle_provider.dart';
 import '../../shared/widgets/stat_card.dart';
 import '../../shared/widgets/speedometer_gauge.dart';
 import '../../shared/widgets/vehicle_pod.dart';
 import '../../shared/widgets/car_top_view.dart';
 import '../../shared/widgets/floating_nav_bar.dart';
-import 'settings_tab.dart';
+import '../battery/battery_screen.dart';
+import '../parking/parking_screen.dart';
+import '../media/media_screen.dart';
+import '../chat/chat_screen.dart';
+import 'package:go_router/go_router.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
-
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  int _navIndex = 0;
-
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-
+    final navIndex = ref.watch(homeNavIndexProvider);
     return Scaffold(
-      backgroundColor: colors.scaffoldBg,
+      backgroundColor: kBg,
       body: IndexedStack(
-        index: _navIndex,
-        children: [
-          const _DashboardTab(),
-          Center(child: Text('Battery',
-              style: TextStyle(color: colors.textPrimary))),
-          Center(child: Text('Parking',
-              style: TextStyle(color: colors.textPrimary))),
-          Center(child: Text('Audio',
-              style: TextStyle(color: colors.textPrimary))),
-          const SettingsTab(),
+        index: navIndex,
+        children: const [
+          _DashboardTab(),
+          BatteryScreen(),
+          ParkingScreen(),
+          ChatScreen(),
+          Center(child: Text('Settings')),
         ],
       ),
       bottomNavigationBar: FloatingNavBar(
-        currentIndex: _navIndex,
-        onTap: (i) => setState(() => _navIndex = i),
+        currentIndex: navIndex,
+        onTap: (i) => ref.read(homeNavIndexProvider.notifier).state = i,
       ),
     );
   }
 }
 
-class _DashboardTab extends StatelessWidget {
+class _DashboardTab extends ConsumerWidget {
   const _DashboardTab();
 
   @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vehicleAsync = ref.watch(vehicleStreamProvider);
+    final driverScore = ref.watch(driverScoreProvider);
+
+    return vehicleAsync.when(
+      loading: () => const _DashboardLayout(
+        vehicle: null, driverScore: 100,
+      ),
+      error: (_, __) => const _DashboardLayout(vehicle: null, driverScore: 100),
+      data: (v) => _DashboardLayout(vehicle: v, driverScore: driverScore),
+    );
+  }
+}
+
+class _DashboardLayout extends ConsumerWidget {
+  final vehicle;
+  final double driverScore;
+  const _DashboardLayout({required this.vehicle, required this.driverScore});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final v = vehicle;
+    final speed = v?.speedMph ?? 0.0;
+    final fuel = v?.fuelLevelPct ?? 74.0;
+    final coolant = v?.coolantTempC ?? 72.0;
+    final battery = v?.batteryVoltage ?? 12.6;
+    final rpm = v?.rpm ?? 800.0;
+    final consumption = v?.fuelConsumptionL100 ?? 8.5;
+    final avgSpeed = v?.avgSpeedMph ?? 0.0;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -69,69 +93,84 @@ class _DashboardTab extends StatelessWidget {
                 children: [
                   const SizedBox(height: 4),
 
-                  // ── Header ─────────────────────────────────────
+                  // ── Header ──────────────────────────────────────────────
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Dashboard',
-                            style: GoogleFonts.inter(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: colors.textPrimary,
-                            ),
-                          ),
-                          Text(
-                            'Live vehicle stats',
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w400,
-                              color: colors.textSecondary,
-                            ),
-                          ),
+                          Text('Dashboard',
+                              style: GoogleFonts.inter(
+                                  fontSize: 20, fontWeight: FontWeight.w700, color: kDark)),
+                          Text(v == null ? 'Connecting…' : 'Live · ${v.engineStatus.toUpperCase()}',
+                              style: GoogleFonts.inter(
+                                  fontSize: 11, fontWeight: FontWeight.w400, color: kMid)),
                         ],
                       ),
-                      // Glassmorphism notification bell
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                          child: Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: colors.surface.withValues(alpha: 0.6),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: colors.surface.withValues(alpha: 0.8),
-                                  width: 1),
-                              boxShadow: [
-                                colors.neuShadow1,
-                                colors.neuShadow2
-                              ],
-                            ),
-                            child: Icon(Icons.notifications_outlined,
-                                size: 17, color: colors.textSecondary),
-                          ),
+                      // Driver Score badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _scoreColor(driverScore).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(rFull),
+                          border: Border.all(color: _scoreColor(driverScore).withValues(alpha: 0.4)),
                         ),
+                        child: Row(children: [
+                          Icon(Icons.shield_outlined, size: 14, color: _scoreColor(driverScore)),
+                          const SizedBox(width: 4),
+                          Text('${driverScore.toInt()}',
+                              style: GoogleFonts.inter(
+                                fontSize: 13, fontWeight: FontWeight.w700,
+                                color: _scoreColor(driverScore),
+                              )),
+                        ]),
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 14),
 
-                  // ── 3 Stat Cards ───────────────────────────────
+                  // ── Service Advisor Alert ─────────────────────────────────
+                  GestureDetector(
+                    onTap: () {
+                      // Switch to AI Chat tab (index 3)
+                      ref.read(homeNavIndexProvider.notifier).state = 3;
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: kDanger.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(rMD),
+                        border: Border.all(color: kDanger.withValues(alpha: 0.35)),
+                      ),
+                      child: Row(children: [
+                        Container(
+                          width: 32, height: 32,
+                          decoration: const BoxDecoration(color: kDanger, shape: BoxShape.circle),
+                          child: const Icon(Icons.support_agent, size: 16, color: Colors.white),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('⚠️ Service Advisor Alert',
+                              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: kDanger)),
+                          Text('AI detected an issue · Tap to talk to service advisor',
+                              style: GoogleFonts.inter(fontSize: 11, color: kDanger.withValues(alpha: 0.75))),
+                        ])),
+                        Icon(Icons.arrow_forward_ios, size: 13, color: kDanger),
+                      ]),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
                   Row(
                     children: [
                       SizedBox(
                         width: cardW,
                         child: StatCard(
                           label: 'Consumption',
-                          value: '14',
-                          unit: 'ep100',
+                          value: consumption.toStringAsFixed(1),
+                          unit: 'L/100',
                           tint: kCard1Gradient[0],
                           gradient: kCard1Gradient,
                         ),
@@ -141,8 +180,8 @@ class _DashboardTab extends StatelessWidget {
                         width: cardW,
                         child: StatCard(
                           label: 'Avg. speed',
-                          value: '56.5',
-                          unit: 'mps',
+                          value: avgSpeed.toStringAsFixed(1),
+                          unit: 'mph',
                           tint: kCard2Gradient[0],
                           gradient: kCard2Gradient,
                         ),
@@ -151,9 +190,9 @@ class _DashboardTab extends StatelessWidget {
                       SizedBox(
                         width: cardW,
                         child: StatCard(
-                          label: 'Consumption',
-                          value: '06',
-                          unit: 'ep100',
+                          label: 'RPM',
+                          value: rpm.toStringAsFixed(0),
+                          unit: 'rpm',
                           tint: kCard3Gradient[0],
                           gradient: kCard3Gradient,
                         ),
@@ -163,85 +202,77 @@ class _DashboardTab extends StatelessWidget {
 
                   const SizedBox(height: 16),
 
-                  // ── Speedometer ─────────────────────────────────
-                  const SpeedometerGauge(value: 56.5, max: 120),
+                  // ── Speedometer ──────────────────────────────────────────
+                  SpeedometerGauge(value: speed, max: 120),
 
                   const SizedBox(height: 6),
 
-                  // ── Fuel row ────────────────────────────────────
+                  // ── Fuel & Battery row ───────────────────────────────────
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.local_gas_station,
-                          size: 15, color: kFuelOrange),
-                      const SizedBox(width: 5),
-                      Text(
-                        '200 ml',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: kFuelOrange,
-                        ),
-                      ),
+                      Icon(Icons.local_gas_station, size: 15, color: kFuelOrange),
+                      const SizedBox(width: 4),
+                      Text('${fuel.toStringAsFixed(0)}%',
+                          style: GoogleFonts.inter(
+                              fontSize: 13, fontWeight: FontWeight.w600, color: kFuelOrange)),
+                      const SizedBox(width: 20),
+                      Icon(Icons.battery_charging_full, size: 15, color: kGood),
+                      const SizedBox(width: 4),
+                      Text('${battery.toStringAsFixed(1)}V',
+                          style: GoogleFonts.inter(
+                              fontSize: 13, fontWeight: FontWeight.w600, color: kGood)),
                     ],
                   ),
 
                   const SizedBox(height: 16),
 
-                  // ── Vehicle Status Row (pods + car) ─────────────
+                  // ── Vehicle row ───────────────────────────────────────────
                   SizedBox(
-                    height: 280,
+                    height: 310,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Left pod
                         Flexible(
                           flex: 1,
                           child: SizedBox(
-                            height: 250,
+                            height: 270,
                             child: VehiclePod(
                               headerIcon: Icons.light_outlined,
                               topIcon: Icons.light_outlined,
-                              topValue: '0',
-                              topStatus: '0°F  100%',
+                              topValue: '${coolant.toStringAsFixed(0)}°C',
+                              topStatus: 'Normal',
                               middleIcon: Icons.thermostat_outlined,
-                              middleValue: '0°F',
-                              middleStatus: '100%',
+                              middleValue: '${coolant.toStringAsFixed(0)}°C',
+                              middleStatus: _coolantStatus(coolant),
                               bottomIcon: Icons.local_gas_station,
-                              bottomValue: '25 L',
-                              bottomColor: kGood,
+                              bottomValue: '${fuel.toStringAsFixed(0)}%',
+                              bottomColor: fuel < 15 ? kDanger : kGood,
                               alignRight: false,
                             ),
                           ),
                         ),
-
                         const SizedBox(width: 8),
-
-                        // Center car
                         const SizedBox(
-                          width: 170,
-                          child: CarTopView(timeMin: 56, distanceMi: 56),
+                          width: 200,
+                          child: CarTopView(timeMin: 0, distanceMi: 0),
                         ),
-
                         const SizedBox(width: 8),
-
-                        // Right pod
                         Flexible(
                           flex: 1,
                           child: SizedBox(
-                            height: 250,
+                            height: 270,
                             child: VehiclePod(
                               headerIcon: Icons.directions_car_outlined,
                               topIcon: Icons.directions_car_outlined,
-                              topValue: '0',
-                              topStatus: '0°F  100%',
+                              topValue: '${speed.toStringAsFixed(0)}',
+                              topStatus: 'mph',
                               middleIcon: Icons.thermostat_outlined,
-                              middleValue: '0°F',
-                              middleStatus: '100%',
-                              bottomIcon:
-                                  Icons.battery_charging_full_outlined,
-                              bottomValue: '40%',
-                              bottomColor: kGood,
+                              middleValue: '${rpm.toStringAsFixed(0)}',
+                              middleStatus: 'RPM',
+                              bottomIcon: Icons.battery_charging_full_outlined,
+                              bottomValue: '${battery.toStringAsFixed(1)}V',
+                              bottomColor: battery < 11.8 ? kWarning : kGood,
                               alignRight: true,
                             ),
                           ),
@@ -258,5 +289,17 @@ class _DashboardTab extends StatelessWidget {
         );
       },
     );
+  }
+
+  Color _scoreColor(double s) {
+    if (s >= 85) return kGood;
+    if (s >= 65) return kWarning;
+    return kDanger;
+  }
+
+  String _coolantStatus(double t) {
+    if (t < 60) return 'Warming';
+    if (t > 105) return 'HOT!';
+    return 'Normal';
   }
 }

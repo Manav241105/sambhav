@@ -1,22 +1,87 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
+import '../../core/providers/booking_provider.dart';
 
-// Stub for booking flow — 3 steps
-class BookingFlowScreen extends StatefulWidget {
+class BookingFlowScreen extends ConsumerStatefulWidget {
   const BookingFlowScreen({super.key});
   @override
-  State<BookingFlowScreen> createState() => _BookingFlowScreenState();
+  ConsumerState<BookingFlowScreen> createState() => _BookingFlowScreenState();
 }
 
-class _BookingFlowScreenState extends State<BookingFlowScreen> {
+class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
   int _step = 0;
   String? _service;
   String? _slot;
+  bool _loading = false;
 
   static const _services = ['Brake Pads', 'Battery', 'Oil Change', 'Full Service', 'Diagnostics'];
   static const _slots = ['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:30 PM'];
+
+  Future<void> _onNext() async {
+    if (_step == 0) {
+      if (_service == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a service first')),
+        );
+        return;
+      }
+      setState(() => _step++);
+    } else if (_step == 1) {
+      if (_slot == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please pick a time slot first')),
+        );
+        return;
+      }
+      setState(() => _step++);
+    } else {
+      // Step 2 — confirm & call API
+      setState(() => _loading = true);
+      try {
+        await ref.read(bookingProvider.notifier).createBooking({
+          'service_component': _service!.toLowerCase().replaceAll(' ', '_'),
+          'slot_time': _slot!,
+          'technician_name': 'Rajesh Kumar',
+          'bay': 'Bay 3',
+        });
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Booking confirmed! $_service at $_slot',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ]),
+            backgroundColor: kGood,
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Booking failed: $e'),
+            backgroundColor: kDanger,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } finally {
+        if (mounted) setState(() => _loading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,14 +164,24 @@ class _BookingFlowScreenState extends State<BookingFlowScreen> {
 
           const Spacer(),
           GestureDetector(
-            onTap: () {
-              if (_step < 2) setState(() => _step++);
-              else Navigator.pop(context);
-            },
+            onTap: _loading ? null : _onNext,
             child: Container(
               height: 52, width: double.infinity,
-              decoration: BoxDecoration(color: kAccent, borderRadius: BorderRadius.circular(rMD)),
-              child: Center(child: Text(_step == 2 ? 'Confirm' : 'Next', style: kSubtitle(color: kDark))),
+              decoration: BoxDecoration(
+                color: _loading ? kAccent.withValues(alpha: 0.6) : kAccent,
+                borderRadius: BorderRadius.circular(rMD),
+              ),
+              child: Center(
+                child: _loading
+                    ? const SizedBox(
+                        width: 22, height: 22,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                      )
+                    : Text(
+                        _step == 2 ? 'Confirm Booking' : 'Next',
+                        style: kSubtitle(color: kDark),
+                      ),
+              ),
             ),
           ),
         ]),

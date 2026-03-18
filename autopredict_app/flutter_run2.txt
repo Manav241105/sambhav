@@ -1,0 +1,119 @@
+﻿Launching lib\main.dart on CPH2491 in debug mode...
+Running Gradle task 'assembleDebug'...                             14.6s
+ΓêÜ Built build\app\outputs\flutter-apk\app-debug.apk
+Installing build\app\outputs\flutter-apk\app-debug.apk...           8.8s
+D/FlutterJNI(13337): Beginning load of flutter...
+D/FlutterJNI(13337): flutter (null) was loaded normally!
+I/flutter (13337): [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+Syncing files to device CPH2491...                                 173ms
+
+Flutter run key commands.
+r Hot reload. 
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+A Dart VM Service on CPH2491 is available at: http://127.0.0.1:51020/7_Ejr9dwu7I=/
+D/callGcSupression(13337): java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[])' on a null object reference
+The Flutter DevTools debugger and profiler on CPH2491 is available at: http://127.0.0.1:9101?uri=http://127.0.0.1:51020/7_Ejr9dwu7I=/
+D/ResourcesManagerExtImpl(13337): applyConfigurationToAppResourcesLocked app.getDisplayId() return callback.displayId:-1
+D/callGcSupression(13337): java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[])' on a null object reference
+D/callGcSupression(13337): java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[])' on a null object reference
+D/ScrollOptim [SceneManager](13337): updateCurrentActivity: mCurrentActivityName=null, isOptEnable=true, isAnimAheadEnable=true, isFrameInsertEnable=true, InsertNum=1, isEnabledForScrollChanged=false
+I/Choreographer(13337): Skipped 986 frames!  The application may be doing too much work on its main thread.
+E/OplusBracketLog(13337): [OplusViewMirrorManager] updateHostViewRootIfNeeded, not support android.view.ViewRootImpl@4e0a18e
+I/SurfaceView(13337): 2808482 onAttachedToWindow
+D/ViewRootImplExtImpl(13337): wrapConfigInfoIntoFlags rotation=0, smallestScreenWidthDp=354, relayoutAsync=false, newFlags=23199744, title=com.autopredict.autopredict_app/com.autopredict.autopredict_app.MainActivity
+I/autopredict_app(13337): Compiler allocated 6079KB to compile void android.view.ViewRootImpl.performTraversals()
+D/VRI[MainActivity](13337): relayoutWindow result, sizeChanged:true, surfaceControlChanged:true, transformHintChanged:true, mSurfaceSize:Point(1240, 2772), mLastSurfaceSize:Point(0, 0), mWidth:-1, mHeight:-1, requestedWidth:1240, requestedHeight:2772, transformHint:0, lastTransformHint:-2147483648, installOrientation:0, displayRotation:0, isSurfaceValid:true, attr.flag:-2122252032, useBlast:true, tmpFrames:ClientWindowFrames{frame=[0,0][1240,2772] display=[0,0][1240,2772] parentFrame=[0,0][0,0]}
+W/VRI[MainActivity](13337): updateBlastSurfaceIfNeeded, surfaceSize:Point(1240, 2772), lastSurfaceSize:Point(0, 0), format:-3, blastBufferQueue:null
+D/BufferQueueConsumer(13337): [](id:341900000000,api:0,p:-1,c:13337) connect: controlledByApp=false
+D/ExtensionsLoader(13337): createInstance(64bit) : createExtendedFactory
+D/ExtensionsLoader(13337): Opened libSchedAssistExtImpl.so
+D/libMEOW (13337): meow new tls: 0xb4000075bc02ab80
+D/libMEOW (13337): applied 1 plugins for [com.autopredict.autopredict_app]:
+D/libMEOW (13337):   plugin 1: [libMEOW_gift.so]: 0xb400007695f7e080
+D/libMEOW (13337): rebuild call chain: 0xb40000758c3f3880
+D/BufferQueueConsumer(13337): [](id:341900000001,api:0,p:-1,c:13337) connect: controlledByApp=false
+I/SurfaceView(13337): 2808482 visibleChanged -- surfaceCreated 
+E/gralloc4(13337): ERROR: Format allocation info not found for format: 38
+E/gralloc4(13337): ERROR: Format allocation info not found for format: 0
+E/gralloc4(13337): Invalid base format! req_base_format = 0x0, req_format = 0x38, type = 0x0
+E/gralloc4(13337): ERROR: Unrecognized and/or unsupported format 0x38 and usage 0xb00
+E/Gralloc4(13337): isSupported(1, 1, 56, 1, ...) failed with 5
+E/GraphicBufferAllocator(13337): Failed to allocate (4 x 4) layerCount 1 format 56 usage b00: 5
+E/AHardwareBuffer(13337): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -5), handle=0x0
+E/gralloc4(13337): ERROR: Format allocation info not found for format: 3b
+E/gralloc4(13337): ERROR: Format allocation info not found for format: 0
+E/gralloc4(13337): Invalid base format! req_base_format = 0x0, req_format = 0x3b, type = 0x0
+E/gralloc4(13337): ERROR: Unrecognized and/or unsupported format 0x3b and usage 0xb00
+E/Gralloc4(13337): isSupported(1, 1, 59, 1, ...) failed with 5
+E/GraphicBufferAllocator(13337): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 5
+E/AHardwareBuffer(13337): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -5), handle=0x0
+E/gralloc4(13337): ERROR: Format allocation info not found for format: 38
+E/gralloc4(13337): ERROR: Format allocation info not found for format: 0
+E/gralloc4(13337): Invalid base format! req_base_format = 0x0, req_format = 0x38, type = 0x0
+E/gralloc4(13337): ERROR: Unrecognized and/or unsupported format 0x38 and usage 0xb00
+E/Gralloc4(13337): isSupported(1, 1, 56, 1, ...) failed with 5
+E/OpenGLRenderer(13337): Unable to match the desired swap behavior.
+E/GraphicBufferAllocator(13337): Failed to allocate (4 x 4) layerCount 1 format 56 usage b00: 5
+E/AHardwareBuffer(13337): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -5), handle=0x0
+E/gralloc4(13337): ERROR: Format allocation info not found for format: 3b
+E/gralloc4(13337): ERROR: Format allocation info not found for format: 0
+E/gralloc4(13337): Invalid base format! req_base_format = 0x0, req_format = 0x3b, type = 0x0
+E/gralloc4(13337): ERROR: Unrecognized and/or unsupported format 0x3b and usage 0xb00
+E/Gralloc4(13337): isSupported(1, 1, 59, 1, ...) failed with 5
+E/GraphicBufferAllocator(13337): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 5
+E/AHardwareBuffer(13337): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -5), handle=0x0
+D/MAGT_SYNC_FRAME(13337): MAGT Frame Sync [MEM]: create object, fd = 154, size = 1600
+D/MAGT_SYNC_FRAME(13337): MAGT Frame Sync [MEM]: map object, fd = 154, size = 1600, addr = 0x777bf6d000
+D/SurfaceView(13337): 2808482 handleSyncNoBuffer
+D/ViewRootImplExtImpl(13337): setMaxDequeuedBufferCount: 2
+D/VRI[MainActivity](13337): dispatchAppVisibility visible:false
+W/libc    (13337): Access denied finding property "persist.vendor.debug.gpud.enable"
+D/BLASTBufferQueue(13337): [SurfaceView[com.autopredict.autopredict_app/com.autopredict.autopredict_app.MainActivity]#1](f:0,a:1) acquireNextBufferLocked size=1240x2772 mFrameNumber=1 applyTransaction=true mTimestamp=58062660394075(auto) mPendingTransactions.size=0 graphicBufferId=57281978826766 transform=0
+D/SurfaceView(13337): 2808482 finishedDrawing
+D/SurfaceView(13337): 2808482 performDrawFinished mAttachedToWindow true
+D/callGcSupression(13337): java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[])' on a null object reference
+D/VRI[MainActivity](13337): setWindowStopped stopped:true
+I/SurfaceView(13337): 2808482 surfaceDestroyed
+D/BLASTBufferQueue(13337): [SurfaceView[com.autopredict.autopredict_app/com.autopredict.autopredict_app.MainActivity]#1](f:0,a:2) destructor()
+D/BufferQueueConsumer(13337): [SurfaceView[com.autopredict.autopredict_app/com.autopredict.autopredict_app.MainActivity]#1(BLAST Consumer)1](id:341900000001,api:0,p:-1,c:13337) disconnect
+W/autopredict_app(13337): userfaultfd: MOVE ioctl seems unsupported: Connection timed out
+W/autopredict_app(13337): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~NHlDZIpwW4aHexqXHx1i5w==/com.google.android.tts-qno3W11jY-5xRe3XvN-V4w==/base.apk' with 1 weak references
+W/autopredict_app(13337): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~NHlDZIpwW4aHexqXHx1i5w==/com.google.android.tts-qno3W11jY-5xRe3XvN-V4w==/split_config.arm64_v8a.apk' with 1 weak references
+W/autopredict_app(13337): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~NHlDZIpwW4aHexqXHx1i5w==/com.google.android.tts-qno3W11jY-5xRe3XvN-V4w==/split_config.en.apk' with 1 weak references
+W/autopredict_app(13337): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~NHlDZIpwW4aHexqXHx1i5w==/com.google.android.tts-qno3W11jY-5xRe3XvN-V4w==/split_config.xxxhdpi.apk' with 1 weak references
+I/Choreographer(13337): Skipped 286 frames!  The application may be doing too much work on its main thread.
+D/OpenGLRenderer(13337): RenderProxy::destroy: this=0xb400007695fe1200, mContext=0xb4000075bc0e8980
+D/OpenGLRenderer(13337): SkiaOpenGLPipeline::setSurface: this=0xb4000076d7b1a1c0, surface=NULL
+D/BLASTBufferQueue(13337): [VRI[MainActivity]#0](f:0,a:0) destructor()
+D/BufferQueueConsumer(13337): [VRI[MainActivity]#0(BLAST Consumer)0](id:341900000000,api:0,p:-1,c:13337) disconnect
+D/ViewRootImplExtImpl(13337): wrapConfigInfoIntoFlags rotation=0, smallestScreenWidthDp=354, relayoutAsync=false, newFlags=23199744, title=com.autopredict.autopredict_app/com.autopredict.autopredict_app.MainActivity
+D/VRI[MainActivity](13337): relayoutWindow result, sizeChanged:false, surfaceControlChanged:true, transformHintChanged:false, mSurfaceSize:Point(1240, 2772), mLastSurfaceSize:Point(1240, 2772), mWidth:1240, mHeight:2772, requestedWidth:1240, requestedHeight:2772, transformHint:0, lastTransformHint:0, installOrientation:0, displayRotation:0, isSurfaceValid:false, attr.flag:-2122252032, useBlast:true, tmpFrames:ClientWindowFrames{frame=[0,0][1240,2772] display=[0,0][1240,2772] parentFrame=[0,0][0,0]}
+W/WindowOnBackDispatcher(13337): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher(13337): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+D/OpenGLRenderer(13337): RenderProxy::destroy: this=0xb400007695fe1200, mContext=0xb4000075bc0e8980
+D/OpenGLRenderer(13337): SkiaOpenGLPipeline::setSurface: this=0xb4000076d7b1a1c0, surface=NULL
+D/ViewRootImplExtImpl(13337): wrapConfigInfoIntoFlags rotation=0, smallestScreenWidthDp=354, relayoutAsync=false, newFlags=23199744, title=com.autopredict.autopredict_app/com.autopredict.autopredict_app.MainActivity
+D/VRI[MainActivity](13337): relayoutWindow result, sizeChanged:false, surfaceControlChanged:false, transformHintChanged:false, mSurfaceSize:Point(1240, 2772), mLastSurfaceSize:Point(1240, 2772), mWidth:1240, mHeight:2772, requestedWidth:1240, requestedHeight:2772, transformHint:0, lastTransformHint:0, installOrientation:0, displayRotation:0, isSurfaceValid:false, attr.flag:-2122252032, useBlast:true, tmpFrames:ClientWindowFrames{frame=[0,0][1240,2772] display=[0,0][1240,2772] parentFrame=[0,0][0,0]}
+D/ProfileInstaller(13337): Installing profile for com.autopredict.autopredict_app
+W/autopredict_app(13337): Suspending all threads took: 45.010ms
+D/OpenGLRenderer(13337): RenderThread::destroyRenderingContext: this=0xb400007695fde000
+D/OpenGLRenderer(13337): SkiaOpenGLPipeline::onContextDestroyed: this=0xb4000076d7b1a1c0
+D/OpenGLRenderer(13337): EglManager::destroy: mEglDisplay=0xb400007695e84600, mEglContext=0xb40000769f19b400, mCurrentSurface=0x0
+D/ActivityThread(13337): do gfx trim 40 success
+I/flutter (14521): [IMPORTANT:flutter/shell/common/shell.cc(528)] [Action Required]: Impeller opt-out deprecated.
+I/flutter (14521):     The application opted out of Impeller by either using the
+I/flutter (14521):     `--no-enable-impeller` flag or the
+I/flutter (14521):     `io.flutter.embedding.android.EnableImpeller` `AndroidManifest.xml` entry.
+I/flutter (14521):     These options are going to go away in an upcoming Flutter release. Remove
+I/flutter (14521):     the explicit opt-out. If you need to opt-out, please report a bug describing
+I/flutter (14521):     the issue.
+I/flutter (14521): 
+I/flutter (14521):     https://github.com/flutter/flutter/issues/new?template=02_bug.yml
+I/flutter (14521): 
+W/flutter-plugin-(14521): type=1400 audit(0.0:212759): avc:  granted  { execute } for  path="/data/data/com.google.android.apps.nbu.paisa.user/app_pccache2/5/FF9F46C837651603405478A94323CFF15475179C/pcam.jar" dev="dm-74" ino=1772425 scontext=u:r:untrusted_app:s0:c224,c256,c512,c768 tcontext=u:object_r:app_data_file:s0:c224,c256,c512,c768 tclass=file app=com.google.android.apps.nbu.paisa.user
+Lost connection to device.

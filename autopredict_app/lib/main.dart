@@ -14,6 +14,7 @@ import 'features/bookings/bookings_screen.dart';
 import 'features/bookings/booking_flow_screen.dart';
 import 'features/notifications/notifications_screen.dart';
 import 'features/profile/profile_screen.dart';
+import 'features/service_chat/service_chat_screen.dart';
 
 final _router = GoRouter(
   initialLocation: '/',
@@ -28,6 +29,7 @@ final _router = GoRouter(
     GoRoute(path: '/book-new', builder: (_, __) => const BookingFlowScreen()),
     GoRoute(path: '/notifications', builder: (_, __) => const NotificationsScreen()),
     GoRoute(path: '/profile',  builder: (_, __) => const ProfileScreen()),
+    GoRoute(path: '/service-chat', builder: (_, __) => const ServiceChatScreen()),
   ],
 );
 

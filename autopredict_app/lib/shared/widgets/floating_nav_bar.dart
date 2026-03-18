@@ -44,11 +44,11 @@ class _FloatingNavBarState extends State<FloatingNavBar>
     Icons.bolt,
     Icons.battery_charging_full_outlined,
     Icons.local_parking_outlined,
-    Icons.headphones_outlined,
+    Icons.chat_bubble_outline,
     Icons.settings_outlined,
   ];
 
-  static const _labels = ['Power', 'Battery', 'Park', 'Audio', 'Settings'];
+  static const _labels = ['Power', 'Battery', 'Park', 'AI Chat', 'Settings'];
 
   @override
   Widget build(BuildContext context) {

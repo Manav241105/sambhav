@@ -1,0 +1,57 @@
+﻿Analyzing autopredict_app...                                    
+
+warning - The value of the local variable 'component' isn't used - lib\core\providers\diagnostics_provider.dart:16:9 - unused_local_variable
+   info - Statements in an if should be enclosed in a block - lib\core\providers\vehicle_provider.dart:26:24 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\core\providers\vehicle_provider.dart:27:29 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\core\providers\vehicle_provider.dart:29:27 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\core\providers\vehicle_provider.dart:30:32 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\core\providers\vehicle_provider.dart:32:21 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\core\providers\vehicle_provider.dart:33:26 - curly_braces_in_flow_control_structures
+   info - Use 'const' with the constructor to improve performance - lib\features\bookings\booking_flow_screen.dart:94:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\bookings\booking_flow_screen.dart:95:17 - prefer_const_constructors
+   info - Statements in an if should be enclosed in a block - lib\features\bookings\booking_flow_screen.dart:103:30 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\bookings\booking_flow_screen.dart:104:20 - curly_braces_in_flow_control_structures
+warning - Unused import: 'package:intl/intl.dart' - lib\features\bookings\bookings_screen.dart:4:8 - unused_import
+   info - Statements in a for should be enclosed in a block - lib\features\chat\chat_screen.dart:246:29 - curly_braces_in_flow_control_structures
+   info - The variable name '_DetailRow' isn't a lowerCamelCase identifier - lib\features\diagnostics\diagnostics_screen.dart:229:10 - non_constant_identifier_names
+   info - An uninitialized field should have an explicit type annotation - lib\features\home\home_screen.dart:65:9 - prefer_typing_uninitialized_variables
+   info - Use 'const' with the constructor to improve performance - lib\features\home\home_screen.dart:182:23 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\home\home_screen.dart:188:23 - prefer_const_constructors
+   info - Unnecessary use of string interpolation - lib\features\media\media_screen.dart:73:32 - unnecessary_string_interpolations
+warning - Unused import: 'package:flutter_riverpod/flutter_riverpod.dart' - lib\features\notifications\notifications_screen.dart:2:8 - unused_import
+   info - Use 'const' with the constructor to improve performance - lib\features\notifications\notifications_screen.dart:11:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\notifications\notifications_screen.dart:19:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\notifications\notifications_screen.dart:27:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\notifications\notifications_screen.dart:35:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\notifications\notifications_screen.dart:43:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\notifications\notifications_screen.dart:51:5 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\parking\parking_screen.dart:80:28 - prefer_const_constructors
+warning - The value of the local variable 'vehicle' isn't used - lib\features\profile\profile_screen.dart:17:11 - unused_local_variable
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\features\profile\profile_screen.dart:171:23 - deprecated_member_use
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\features\profile\profile_screen.dart:172:78 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\features\profile\profile_screen.dart:172:78 - invalid_use_of_protected_member
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\splash\splash_screen.dart:59:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\splash\splash_screen.dart:76:56 - deprecated_member_use
+   info - Use 'const' for final variables initialized to a constant value - lib\shared\widgets\speedometer_gauge.dart:158:5 - prefer_const_declarations
+   info - Use 'const' for final variables initialized to a constant value - lib\shared\widgets\speedometer_gauge.dart:159:5 - prefer_const_declarations
+  error - The name 'MyApp' isn't a class - test\widget_test.dart:16:35 - creation_with_non_type
+
+flutter : 35 issues 
+found. (ran in 2.5s)
+At line:1 char:1
++ flutter analyze 
+--no-pub 2>&1 | 
+ForEach-Object { $_ } 
+| Out-File -Fil ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (35 issues fou   
+ nd. (ran in 2.5s):    
+String) [], Remote    
+Exception
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 

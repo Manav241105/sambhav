@@ -1,120 +1,258 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
-import '../../core/theme/typography.dart';
+import '../../core/providers/vehicle_provider.dart';
+import '../../core/providers/diagnostics_provider.dart';
+import '../../core/models/diagnostic_component.dart';
+import '../../core/theme/theme_provider.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.appColors;
+    final vehicle = ref.watch(vehicleProvider);
+    final diagnosticsAsync = ref.watch(diagnosticsProvider);
+    final themeMode = ref.watch(themeModeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+
+    final driverScore = ref.watch(driverScoreProvider);
 
     return Scaffold(
       backgroundColor: colors.scaffoldBg,
-      appBar: AppBar(
-        backgroundColor: colors.scaffoldBg,
-        elevation: 0,
-        title: Text('Profile', style: kTitle(color: colors.textPrimary)),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Avatar
-          Center(child: Column(children: [
-            Container(width: 80, height: 80,
-              decoration: const BoxDecoration(color: kAccent, shape: BoxShape.circle),
-              child: const Icon(Icons.person, size: 40, color: Colors.black)),
-            const SizedBox(height: 10),
-            Text('Manav Parekh', style: kTitle(color: colors.textPrimary)),
-            Text('+91 98765 43210', style: kBody(color: colors.textSecondary)),
-          ])),
-          const SizedBox(height: 28),
-
-          // Vehicles section
-          Text('MY VEHICLES', style: kLabel(color: colors.textSecondary)),
-          const SizedBox(height: 10),
-          _VehicleCard(id: 'VEH001', make: 'Tesla', model: 'Model 3', year: 2022, health: 82),
-          const SizedBox(height: 8),
-          GestureDetector(onTap: () {},
-            child: Container(height: 52,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(children: [
+            // Profile header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                border: Border.all(color: kAccent),
-                borderRadius: BorderRadius.circular(rMD),
+                color: colors.surface,
+                boxShadow: [colors.cardShadowStyle],
               ),
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.add, color: colors.textSecondary),
-                const SizedBox(width: 8),
-                Text('Add Vehicle via VIN', style: kBody(color: colors.textSecondary)),
+              child: Column(children: [
+                Stack(alignment: Alignment.bottomRight, children: [
+                  Container(
+                    width: 80, height: 80,
+                    decoration: const BoxDecoration(
+                      color: kAccent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.person, size: 40, color: Colors.black),
+                  ),
+                  Container(
+                    width: 24, height: 24,
+                    decoration: const BoxDecoration(
+                      color: kGood, shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.check, size: 14, color: Colors.white),
+                  ),
+                ]),
+                const SizedBox(height: 12),
+                Text('Manav Parekh', style: GoogleFonts.inter(
+                  fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary,
+                )),
+                Text('manav@autopredict.in', style: GoogleFonts.inter(
+                  fontSize: 13, color: colors.textSecondary,
+                )),
+                const SizedBox(height: 16),
+                // Stats row
+                Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                  _StatItem('Driver Score', '${driverScore.toInt()}', colors),
+                  Container(width: 1, height: 36, color: colors.gaugeTrackColor),
+                  _StatItem('Trips', '142', colors),
+                  Container(width: 1, height: 36, color: colors.gaugeTrackColor),
+                  _StatItem('km Driven', '12,480', colors),
+                ]),
               ]),
             ),
-          ),
-          const SizedBox(height: 24),
 
-          // Settings tiles
-          Text('SETTINGS', style: kLabel(color: colors.textSecondary)),
-          const SizedBox(height: 10),
-          ...[
-            ('Notification Preferences', Icons.notifications_outlined),
-            ('Language', Icons.language),
-            ('Linked Service Center', Icons.business_outlined),
-            ('Contact Support', Icons.headset_mic_outlined),
-            ('Logout', Icons.logout),
-          ].map((e) => Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(rMD),
-              boxShadow: [colors.cardShadowStyle],
+            const SizedBox(height: 16),
+
+            // Vehicle card
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: colors.surface,
+                  borderRadius: BorderRadius.circular(rLG),
+                  boxShadow: [colors.cardShadowStyle],
+                ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    const Icon(Icons.directions_car, size: 18, color: kAccentDark),
+                    const SizedBox(width: 8),
+                    Text('My Vehicle', style: GoogleFonts.inter(
+                      fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary,
+                    )),
+                  ]),
+                  const Divider(height: 20),
+                  _ProfileRow('Make & Model', 'Toyota Camry 2021', colors),
+                  _ProfileRow('VIN', 'JT2BF22KXY0123456', colors),
+                  _ProfileRow('Reg. No.', 'MH 01 AB 1234', colors),
+                  _ProfileRow('Fuel Type', 'Petrol', colors),
+                  _ProfileRow('Odometer', '12,480 km', colors),
+                ]),
+              ),
             ),
-            child: ListTile(
-              leading: Icon(e.$2, size: 20,
-                  color: e.$1 == 'Logout' ? kDanger : colors.textSecondary),
-              title: Text(e.$1,
-                  style: kBody(color: e.$1 == 'Logout' ? kDanger : colors.textPrimary)),
-              trailing: e.$1 != 'Logout'
-                ? Icon(Icons.chevron_right, size: 18, color: colors.textSecondary) : null,
-              onTap: () {},
+
+            const SizedBox(height: 12),
+
+            // Diagnostics summary
+            diagnosticsAsync.when(
+              data: (components) {
+                final critical = components.where((c) => c.status == ComponentStatus.critical).length;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: critical > 0
+                          ? kDanger.withValues(alpha: 0.06)
+                          : colors.surface,
+                      borderRadius: BorderRadius.circular(rLG),
+                      border: Border.all(
+                        color: critical > 0
+                            ? kDanger.withValues(alpha: 0.3)
+                            : Colors.transparent,
+                      ),
+                      boxShadow: [colors.cardShadowStyle],
+                    ),
+                    child: Row(children: [
+                      Icon(
+                        critical > 0 ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+                        color: critical > 0 ? kDanger : kGood, size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(
+                          critical > 0
+                              ? '$critical Critical Issue${critical > 1 ? 's' : ''} Found'
+                              : 'All Systems Good',
+                          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700,
+                              color: critical > 0 ? kDanger : kGood),
+                        ),
+                        Text(
+                          critical > 0 ? 'Service required immediately' : 'Last checked just now',
+                          style: GoogleFonts.inter(fontSize: 12, color: colors.textSecondary),
+                        ),
+                      ])),
+                    ]),
+                  ),
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
             ),
-          )),
-        ],
+
+            const SizedBox(height: 12),
+
+            // Settings
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colors.surface,
+                  borderRadius: BorderRadius.circular(rLG),
+                  boxShadow: [colors.cardShadowStyle],
+                ),
+                child: Column(children: [
+                  _SettingTile(
+                    icon: isDark ? Icons.dark_mode : Icons.light_mode,
+                    label: isDark ? 'Dark Mode' : 'Light Mode',
+                    trailing: Switch(
+                      value: isDark,
+                      activeColor: kAccent,
+                      onChanged: (v) => ref.read(themeModeProvider.notifier).state =
+                          v ? ThemeMode.dark : ThemeMode.light,
+                    ),
+                    colors: colors,
+                  ),
+                  _Divider(colors: colors),
+                  _SettingTile(icon: Icons.notifications_outlined, label: 'Notifications', colors: colors),
+                  _Divider(colors: colors),
+                  _SettingTile(icon: Icons.security_outlined, label: 'Privacy', colors: colors),
+                  _Divider(colors: colors),
+                  _SettingTile(icon: Icons.info_outline, label: 'About · v1.0.0', colors: colors),
+                ]),
+              ),
+            ),
+
+            const SizedBox(height: 80),
+          ]),
+        ),
       ),
     );
   }
 }
 
-class _VehicleCard extends StatelessWidget {
-  final String id, make, model;
-  final int year;
-  final int health;
-  const _VehicleCard({required this.id, required this.make, required this.model,
-    required this.year, required this.health});
+class _StatItem extends StatelessWidget {
+  final String label, value;
+  final dynamic colors;
+  const _StatItem(this.label, this.value, this.colors);
 
   @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
+  Widget build(BuildContext context) => Column(children: [
+    Text(value, style: GoogleFonts.inter(
+      fontSize: 20, fontWeight: FontWeight.w800, color: colors.textPrimary,
+    )),
+    Text(label, style: GoogleFonts.inter(fontSize: 11, color: colors.textSecondary)),
+  ]);
+}
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(rLG),
-        boxShadow: [colors.cardShadowStyle],
-      ),
-      child: Row(children: [
-        Container(width: 48, height: 48,
-          decoration: BoxDecoration(
-            color: kAccent.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(rMD),
-          ),
-          child: const Icon(Icons.directions_car, color: Color(0xFF8FB82E))),
-        const SizedBox(width: 12),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('$make $model', style: kSubtitle(color: colors.textPrimary)),
-          Text('$year · $id', style: kCaption(color: colors.textSecondary)),
-        ])),
-        Text('$health%', style: kLabel(color: health >= 80 ? kGood : kWarning)),
-      ]),
-    );
-  }
+class _ProfileRow extends StatelessWidget {
+  final String label, value;
+  final dynamic colors;
+  const _ProfileRow(this.label, this.value, this.colors);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Row(children: [
+      SizedBox(width: 110, child: Text(label, style: GoogleFonts.inter(
+        fontSize: 12, color: colors.textSecondary,
+      ))),
+      Expanded(child: Text(value, style: GoogleFonts.inter(
+        fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary,
+      ))),
+    ]),
+  );
+}
+
+class _SettingTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Widget? trailing;
+  final dynamic colors;
+  const _SettingTile({required this.icon, required this.label, required this.colors, this.trailing});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    child: Row(children: [
+      Icon(icon, size: 20, color: colors.textSecondary),
+      const SizedBox(width: 14),
+      Expanded(child: Text(label, style: GoogleFonts.inter(
+        fontSize: 14, color: colors.textPrimary,
+      ))),
+      trailing ?? Icon(Icons.chevron_right, size: 18, color: colors.textSecondary),
+    ]),
+  );
+}
+
+class _Divider extends StatelessWidget {
+  final dynamic colors;
+  const _Divider({required this.colors});
+
+  @override
+  Widget build(BuildContext context) => Divider(
+    height: 1, indent: 50, endIndent: 16,
+    color: colors.navBorder,
+  );
 }

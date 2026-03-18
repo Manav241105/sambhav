@@ -189,10 +189,12 @@ class LlamaModelClient:
             model=SystemConfig.MODEL_NAME,
             base_url=SystemConfig.OLLAMA_BASE_URL,
             api_key=SystemConfig.OLLAMA_API_KEY,
-            model_capabilities={
+            model_info={
                 "vision": False,
                 "function_calling": True,
                 "json_output": True,
+                "family": "unknown",
+                "structured_output": False,
             },
             temperature=temperature or SystemConfig.AGENT_TEMPERATURE,
             max_tokens=max_tokens or SystemConfig.AGENT_MAX_TOKENS,

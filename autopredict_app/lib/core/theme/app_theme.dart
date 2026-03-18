@@ -163,9 +163,16 @@ ThemeData buildLightTheme() {
   return ThemeData(
     brightness: Brightness.light,
     scaffoldBackgroundColor: AppColors.light.scaffoldBg,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: kAccent,
-      brightness: Brightness.light,
+    colorScheme: const ColorScheme.light(
+      primary: kAccent,
+      onPrimary: kDark,
+      primaryContainer: Color(0xFFE8FFB0),
+      onPrimaryContainer: kDark,
+      secondary: kAccentDark,
+      onSecondary: kDark,
+      surface: kSurface,
+      onSurface: kDark,
+      outline: Color(0xFFE0E0E0),
     ),
     useMaterial3: true,
     textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
@@ -187,9 +194,16 @@ ThemeData buildDarkTheme() {
   return ThemeData(
     brightness: Brightness.dark,
     scaffoldBackgroundColor: AppColors.dark.scaffoldBg,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: kAccent,
-      brightness: Brightness.dark,
+    colorScheme: const ColorScheme.dark(
+      primary: kAccent,
+      onPrimary: kDark,
+      primaryContainer: Color(0xFF3A4A10),
+      onPrimaryContainer: kAccent,
+      secondary: kAccentDark,
+      onSecondary: kDark,
+      surface: Color(0xFF1E1E2C),
+      onSurface: Color(0xFFE8E8EC),
+      outline: Color(0xFF2A2A3A),
     ),
     useMaterial3: true,
     textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
