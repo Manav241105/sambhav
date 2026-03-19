@@ -37,6 +37,81 @@ class SettingsTab extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
+          // ── Quick Dark Mode Toggle ──────────────────────────────
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(rMD),
+              boxShadow: [colors.cardShadowStyle],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: currentMode == ThemeMode.dark
+                        ? kAccent.withValues(alpha: 0.2)
+                        : colors.neuBg,
+                    borderRadius: BorderRadius.circular(rSM),
+                  ),
+                  child: Icon(
+                    currentMode == ThemeMode.dark
+                        ? Icons.dark_mode
+                        : Icons.light_mode,
+                    size: 20,
+                    color: currentMode == ThemeMode.dark
+                        ? kAccentDark
+                        : colors.textSecondary,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Dark Mode',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        currentMode == ThemeMode.dark
+                            ? 'On'
+                            : currentMode == ThemeMode.light
+                                ? 'Off'
+                                : 'Following system',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w400,
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: currentMode == ThemeMode.dark,
+                  activeThumbColor: kAccent,
+                  activeTrackColor: kAccent.withValues(alpha: 0.3),
+                  inactiveThumbColor: colors.textSecondary,
+                  inactiveTrackColor: colors.neuBg,
+                  onChanged: (dark) {
+                    ref.read(themeModeProvider.notifier).setMode(
+                          dark ? ThemeMode.dark : ThemeMode.light,
+                        );
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
           // ── Appearance Section ──────────────────────────────────────
           _SectionHeader(title: 'APPEARANCE', colors: colors),
           const SizedBox(height: 10),

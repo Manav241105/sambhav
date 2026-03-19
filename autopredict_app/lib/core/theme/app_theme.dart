@@ -19,6 +19,9 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color overlayCircleBorder;
   final Color gaugeTrackColor;
   final Color inputFill;
+  final List<Color> statCardGradient1;
+  final List<Color> statCardGradient2;
+  final List<Color> statCardGradient3;
 
   const AppColors({
     required this.scaffoldBg,
@@ -36,6 +39,9 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.overlayCircleBorder,
     required this.gaugeTrackColor,
     required this.inputFill,
+    required this.statCardGradient1,
+    required this.statCardGradient2,
+    required this.statCardGradient3,
   });
 
   // ── Light Palette ───────────────────────────────────────────────────────
@@ -55,6 +61,9 @@ class AppColors extends ThemeExtension<AppColors> {
     overlayCircleBorder: Color(0x7338BDF8), // kCarGlow 45%
     gaugeTrackColor: Color(0xFFE0E0E0),
     inputFill: kBg,
+    statCardGradient1: kCard1Gradient,
+    statCardGradient2: kCard2Gradient,
+    statCardGradient3: kCard3Gradient,
   );
 
   // ── Dark Palette ────────────────────────────────────────────────────────
@@ -86,6 +95,9 @@ class AppColors extends ThemeExtension<AppColors> {
     overlayCircleBorder: Color(0x7338BDF8),
     gaugeTrackColor: Color(0xFF2A2A3A),
     inputFill: Color(0xFF1A1A26),
+    statCardGradient1: [Color(0xFF1A3A4A), Color(0xFF163848)],
+    statCardGradient2: [Color(0xFF3A3820), Color(0xFF2A3820)],
+    statCardGradient3: [Color(0xFF1A3A28), Color(0xFF183830)],
   );
 
   @override
@@ -105,6 +117,9 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? overlayCircleBorder,
     Color? gaugeTrackColor,
     Color? inputFill,
+    List<Color>? statCardGradient1,
+    List<Color>? statCardGradient2,
+    List<Color>? statCardGradient3,
   }) {
     return AppColors(
       scaffoldBg: scaffoldBg ?? this.scaffoldBg,
@@ -122,6 +137,9 @@ class AppColors extends ThemeExtension<AppColors> {
       overlayCircleBorder: overlayCircleBorder ?? this.overlayCircleBorder,
       gaugeTrackColor: gaugeTrackColor ?? this.gaugeTrackColor,
       inputFill: inputFill ?? this.inputFill,
+      statCardGradient1: statCardGradient1 ?? this.statCardGradient1,
+      statCardGradient2: statCardGradient2 ?? this.statCardGradient2,
+      statCardGradient3: statCardGradient3 ?? this.statCardGradient3,
     );
   }
 
@@ -148,6 +166,18 @@ class AppColors extends ThemeExtension<AppColors> {
       gaugeTrackColor:
           Color.lerp(gaugeTrackColor, other.gaugeTrackColor, t)!,
       inputFill: Color.lerp(inputFill, other.inputFill, t)!,
+      statCardGradient1: [
+        Color.lerp(statCardGradient1[0], other.statCardGradient1[0], t)!,
+        Color.lerp(statCardGradient1[1], other.statCardGradient1[1], t)!,
+      ],
+      statCardGradient2: [
+        Color.lerp(statCardGradient2[0], other.statCardGradient2[0], t)!,
+        Color.lerp(statCardGradient2[1], other.statCardGradient2[1], t)!,
+      ],
+      statCardGradient3: [
+        Color.lerp(statCardGradient3[0], other.statCardGradient3[0], t)!,
+        Color.lerp(statCardGradient3[1], other.statCardGradient3[1], t)!,
+      ],
     );
   }
 }

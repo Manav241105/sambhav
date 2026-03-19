@@ -100,7 +100,7 @@ class _SpeedometerGaugeState extends State<SpeedometerGauge>
                         style: GoogleFonts.inter(
                           fontSize: 50,
                           fontWeight: FontWeight.w800,
-                          color: Colors.black,
+                          color: colors.textPrimary,
                           height: 1.0,
                         ),
                       ),

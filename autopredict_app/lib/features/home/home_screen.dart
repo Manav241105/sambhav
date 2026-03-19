@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 import '../../core/providers/vehicle_provider.dart';
 import '../../shared/widgets/stat_card.dart';
@@ -10,9 +11,8 @@ import '../../shared/widgets/car_top_view.dart';
 import '../../shared/widgets/floating_nav_bar.dart';
 import '../battery/battery_screen.dart';
 import '../parking/parking_screen.dart';
-import '../media/media_screen.dart';
 import '../chat/chat_screen.dart';
-import 'package:go_router/go_router.dart';
+import 'settings_tab.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -24,16 +24,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final navIndex = ref.watch(homeNavIndexProvider);
+    final colors = context.appColors;
     return Scaffold(
-      backgroundColor: kBg,
+      backgroundColor: colors.scaffoldBg,
       body: IndexedStack(
         index: navIndex,
-        children: const [
+        children: [
           _DashboardTab(),
           BatteryScreen(),
           ParkingScreen(),
           ChatScreen(),
-          Center(child: Text('Settings')),
+          SettingsTab(),
         ],
       ),
       bottomNavigationBar: FloatingNavBar(
@@ -69,6 +70,7 @@ class _DashboardLayout extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.appColors;
     final v = vehicle;
     final speed = v?.speedMph ?? 0.0;
     final fuel = v?.fuelLevelPct ?? 74.0;
@@ -102,10 +104,10 @@ class _DashboardLayout extends ConsumerWidget {
                         children: [
                           Text('Dashboard',
                               style: GoogleFonts.inter(
-                                  fontSize: 20, fontWeight: FontWeight.w700, color: kDark)),
+                                  fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary)),
                           Text(v == null ? 'Connecting…' : 'Live · ${v.engineStatus.toUpperCase()}',
                               style: GoogleFonts.inter(
-                                  fontSize: 11, fontWeight: FontWeight.w400, color: kMid)),
+                                  fontSize: 11, fontWeight: FontWeight.w400, color: colors.textSecondary)),
                         ],
                       ),
                       // Driver Score badge
@@ -171,8 +173,8 @@ class _DashboardLayout extends ConsumerWidget {
                           label: 'Consumption',
                           value: consumption.toStringAsFixed(1),
                           unit: 'L/100',
-                          tint: kCard1Gradient[0],
-                          gradient: kCard1Gradient,
+                          tint: colors.statCardGradient1[0],
+                          gradient: colors.statCardGradient1,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -182,8 +184,8 @@ class _DashboardLayout extends ConsumerWidget {
                           label: 'Avg. speed',
                           value: avgSpeed.toStringAsFixed(1),
                           unit: 'mph',
-                          tint: kCard2Gradient[0],
-                          gradient: kCard2Gradient,
+                          tint: colors.statCardGradient2[0],
+                          gradient: colors.statCardGradient2,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -193,8 +195,8 @@ class _DashboardLayout extends ConsumerWidget {
                           label: 'RPM',
                           value: rpm.toStringAsFixed(0),
                           unit: 'rpm',
-                          tint: kCard3Gradient[0],
-                          gradient: kCard3Gradient,
+                          tint: colors.statCardGradient3[0],
+                          gradient: colors.statCardGradient3,
                         ),
                       ),
                     ],

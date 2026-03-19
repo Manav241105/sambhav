@@ -1637,10 +1637,20 @@ When confirming a booking after the customer picks a slot, end with BOOKING_CREA
                     "options": {"temperature": 0.65, "num_predict": 200},
                 },
             )
+            resp.raise_for_status()
             data = resp.json()
             reply_raw = data.get("message", {}).get("content", "").strip()
+            
+            if not reply_raw:
+                reply_raw = "I'm analyzing your vehicle data. How can I help you today?"
+                
+    except httpx.ConnectError:
+        reply_raw = "[AI offline — ensure Ollama is running]"
+    except httpx.TimeoutException:
+        reply_raw = "The AI is taking too long to respond. Please try again."
     except Exception as e:
-        reply_raw = f"I'm having trouble connecting to the AI right now. Please try again. ({e})"
+        print(f"❌ Chat error: {type(e).__name__}: {e}")
+        reply_raw = f"I'm having trouble connecting to the AI right now. Please try again."
 
     # Detect action tokens
     action = None

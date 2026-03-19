@@ -24,7 +24,10 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final grad = gradient ?? [tint, tint];
+    final valueColor = isDark ? colors.textPrimary : kDark;
+    final labelColor = isDark ? colors.textSecondary : const Color(0xFF8C8C8C);
     return Container(
       height: 80,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -47,7 +50,7 @@ class StatCard extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF8C8C8C),
+              color: labelColor,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -62,7 +65,7 @@ class StatCard extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
-                    color: kDark,
+                    color: valueColor,
                     height: 1.0,
                   ),
                   maxLines: 1,
@@ -77,7 +80,7 @@ class StatCard extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.w400,
-                    color: const Color(0xFF8C8C8C),
+                    color: labelColor,
                   ),
                 ),
               ),
