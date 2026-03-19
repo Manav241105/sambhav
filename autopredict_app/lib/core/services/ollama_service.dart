@@ -3,15 +3,23 @@ import 'package:dio/dio.dart';
 
 /// Service to communicate with Ollama llama3:8b running at localhost:11434
 class OllamaService {
-  // PC LAN IP — works for both physical device and emulator on the same Wi-Fi.
-  // Emulator alternative: use 'http://10.0.2.2:11434'
-  static const _baseUrl = 'http://192.168.0.199:11434';
+  // ── ngrok tunnel URL ──────────────────────────────────────────────────────
+  // 1. Run: ngrok http 11434
+  // 2. Copy the https URL (e.g. https://abc123.ngrok-free.app)
+  // 3. Paste it below (no trailing slash)
+  // 4. Hot-restart the app (Shift+R in flutter run terminal)
+  static const _baseUrl = 'https://discrepant-ungorged-adelaide.ngrok-free.dev';
+  // ──────────────────────────────────────────────────────────────────────────
   static const _model   = 'llama3:8b';
 
   final Dio _dio = Dio(BaseOptions(
     baseUrl: _baseUrl,
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 60),
+    headers: {
+      'ngrok-skip-browser-warning': 'true', // required for ngrok tunnels
+      'Content-Type': 'application/json',
+    },
   ));
 
   /// Send a chat message with vehicle context injected into system prompt.
