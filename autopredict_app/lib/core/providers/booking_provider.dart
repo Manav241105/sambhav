@@ -30,6 +30,11 @@ class BookingNotifier extends StateNotifier<AsyncValue<List<Map<String, dynamic>
     await _load();
   }
 
+  Future<void> rescheduleBooking(String id, Map<String, dynamic> updates) async {
+    await _api.patchBooking(id, updates);
+    await _load();
+  }
+
   Future<void> refresh() => _load();
 }
 

@@ -84,11 +84,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               controller: _scroll,
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               itemCount: messages.length,
-              itemBuilder: (_, i) => _BubbleWidget(
-                msg: messages[i],
-                colors: colors,
-                onBookingConfirm: () => context.push('/book-new'),
-              ),
+              itemBuilder: (_, i) {
+                final msg = messages[i];
+                return _BubbleWidget(
+                  msg: msg,
+                  colors: colors,
+                  onBookingConfirm: () async {
+                    final result = await context.push<dynamic>('/book-new');
+                    if (result != null && result is Map) {
+                      ref.read(chatProvider.notifier).confirmBookingAction(msg.id, Map<String, dynamic>.from(result));
+                    }
+                  },
+                );
+              },
             ),
           ),
           // Suggestion chips
@@ -206,11 +214,71 @@ class _BubbleWidget extends StatelessWidget {
               const SizedBox(height: 8),
               _AlertCard(data: msg.actionData!, colors: colors),
             ],
+            if (msg.actionType == 'BOOKING_CREATED' && msg.actionData?['booking'] != null) ...[
+              const SizedBox(height: 8),
+              _BookingConfirmCard(
+                booking: Map<String, dynamic>.from(msg.actionData!['booking']),
+                colors: colors,
+                onView: () => context.push('/bookings'),
+              ),
+            ],
           ],
         ),
       ),
     );
   }
+}
+
+class _BookingConfirmCard extends StatelessWidget {
+  final Map<String, dynamic> booking;
+  final dynamic colors;
+  final VoidCallback onView;
+
+  const _BookingConfirmCard({required this.booking, required this.colors, required this.onView});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.only(top: 4),
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: kGood.withValues(alpha: 0.06),
+      borderRadius: BorderRadius.circular(rLG),
+      border: Border.all(color: kGood.withValues(alpha: 0.35)),
+    ),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        const Icon(Icons.check_circle, color: kGood, size: 18),
+        const SizedBox(width: 8),
+        Text('Booking Confirmed! ✅', style: GoogleFonts.inter(
+          fontSize: 13, fontWeight: FontWeight.w700, color: kGood,
+        )),
+      ]),
+      const SizedBox(height: 12),
+      _Row(icon: Icons.build_outlined, text: (booking['service_component'] as String? ?? '').replaceAll('_', ' '), colors: colors),
+      _Row(icon: Icons.calendar_today_outlined, text: booking['slot_time'] ?? '', colors: colors),
+      _Row(icon: Icons.person_outline, text: booking['technician_name'] ?? '', colors: colors),
+      _Row(icon: Icons.garage_outlined, text: booking['bay'] ?? '', colors: colors),
+      const SizedBox(height: 10),
+      GestureDetector(
+        onTap: () { HapticFeedback.mediumImpact(); onView(); },
+        child: Container(
+          width: double.infinity, height: 40,
+          decoration: BoxDecoration(
+            color: kAccentDark.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(rMD),
+            border: Border.all(color: kAccentDark.withValues(alpha: 0.3)),
+          ),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(Icons.receipt_long_outlined, size: 14, color: kAccentDark),
+            const SizedBox(width: 6),
+            Text('View Bookings', style: GoogleFonts.inter(
+              fontSize: 13, fontWeight: FontWeight.w600, color: kAccentDark,
+            )),
+          ]),
+        ),
+      ),
+    ]),
+  );
 }
 
 class _TypingIndicator extends StatefulWidget {

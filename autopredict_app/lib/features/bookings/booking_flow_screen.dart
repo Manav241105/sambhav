@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../core/providers/booking_provider.dart';
+import 'package:go_router/go_router.dart';
 
 class BookingFlowScreen extends ConsumerStatefulWidget {
   const BookingFlowScreen({super.key});
@@ -14,6 +15,7 @@ class BookingFlowScreen extends ConsumerStatefulWidget {
 class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
   int _step = 0;
   String? _service;
+  DateTime? _date;
   String? _slot;
   bool _loading = false;
 
@@ -30,9 +32,9 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
       }
       setState(() => _step++);
     } else if (_step == 1) {
-      if (_slot == null) {
+      if (_date == null || _slot == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please pick a time slot first')),
+          const SnackBar(content: Text('Please pick a date and time slot first')),
         );
         return;
       }
@@ -41,11 +43,18 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
       // Step 2 — confirm & call API
       setState(() => _loading = true);
       try {
-        await ref.read(bookingProvider.notifier).createBooking({
+        int hour = int.parse(_slot!.split(':')[0]);
+        if (_slot!.contains('PM') && hour != 12) hour += 12;
+        if (_slot!.contains('AM') && hour == 12) hour = 0;
+        int min = int.parse(_slot!.split(':')[1].split(' ')[0]);
+        final exactTime = DateTime(_date!.year, _date!.month, _date!.day, hour, min);
+
+        final bookingData = await ref.read(bookingProvider.notifier).createBooking({
           'service_component': _service!.toLowerCase().replaceAll(' ', '_'),
-          'slot_time': _slot!,
+          'slot_time': '${_date!.day}/${_date!.month} at $_slot',
+          'slot_time_iso': exactTime.toIso8601String(),
           'technician_name': 'Rajesh Kumar',
-          'bay': 'Bay 3',
+          'bay': 'BAY-3',
         });
 
         if (!mounted) return;
@@ -67,7 +76,7 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
-        Navigator.pop(context);
+        if (context.mounted) context.pop(bookingData);
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -126,7 +135,41 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
           ],
 
           if (_step == 1) ...[
-            Text('Pick a Time Slot', style: kTitle(color: colors.textPrimary)),
+            Text('Pick a Date & Time', style: kTitle(color: colors.textPrimary)),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 70,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 14,
+                itemBuilder: (context, i) {
+                  final d = DateTime.now().add(Duration(days: i + 1));
+                  final isSelected = _date?.day == d.day && _date?.month == d.month;
+                  return GestureDetector(
+                    onTap: () => setState(() => _date = d),
+                    child: Container(
+                      width: 65,
+                      margin: const EdgeInsets.only(right: 10),
+                      decoration: BoxDecoration(
+                        color: isSelected ? kAccent : colors.surface,
+                        borderRadius: BorderRadius.circular(rMD),
+                        border: Border.all(color: isSelected ? kAccent : colors.navBorder),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][d.weekday - 1],
+                            style: kLabel(color: isSelected ? kDark : colors.textSecondary)
+                          ),
+                          Text('${d.day}/${d.month}', style: kBody(color: isSelected ? kDark : colors.textPrimary)),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
             const SizedBox(height: 16),
             Wrap(spacing: 10, runSpacing: 10,
               children: _slots.map((sl) => GestureDetector(
@@ -155,6 +198,7 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
               ),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 _InfoLine('Service', _service ?? '-'),
+                _InfoLine('Date', _date != null ? '${_date!.day}/${_date!.month}/${_date!.year}' : '-'),
                 _InfoLine('Time', _slot ?? '-'),
                 _InfoLine('Bay', 'Bay 3 (auto-assigned)'),
                 _InfoLine('Technician', 'Rajesh Kumar'),

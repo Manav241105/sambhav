@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import {
@@ -8,7 +8,9 @@ import {
 import DashboardLayout from '../components/DashboardLayout';
 import LiveEventBus from '../components/LiveEventBus';
 
-const API = 'http://localhost:8000';
+import { API_BASE } from '../config';
+
+const API = API_BASE;
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 /* ── Group conversation turns by vehicle ─────────── */

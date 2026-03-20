@@ -132,16 +132,155 @@ class _BookingCard extends StatelessWidget {
         const SizedBox(height: 16),
         _StatusStepper(status: booking['status'] ?? 'CONFIRMED', colors: colors),
 
-        // Cancel
+        // Actions
         if ((booking['status'] as String? ?? '').toUpperCase() != 'CANCELLED') ...[
           const SizedBox(height: 12),
-          GestureDetector(
-            onTap: onCancel,
-            child: Text('Cancel Booking', style: GoogleFonts.inter(
-                fontSize: 12, color: kDanger, fontWeight: FontWeight.w600)),
-          ),
+          Row(children: [
+            GestureDetector(
+              onTap: onCancel,
+              child: Text('Cancel', style: GoogleFonts.inter(
+                  fontSize: 12, color: kDanger, fontWeight: FontWeight.w600)),
+            ),
+            const SizedBox(width: 24),
+            GestureDetector(
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (ctx) => _RescheduleSheet(booking: booking, colors: colors),
+                );
+              },
+              child: Text('Reschedule', style: GoogleFonts.inter(
+                  fontSize: 12, color: kAccentDark, fontWeight: FontWeight.w600)),
+            ),
+          ]),
         ],
       ]),
+    );
+  }
+}
+
+class _RescheduleSheet extends ConsumerStatefulWidget {
+  final Map<String, dynamic> booking;
+  final dynamic colors;
+  const _RescheduleSheet({required this.booking, required this.colors});
+
+  @override
+  ConsumerState<_RescheduleSheet> createState() => _RescheduleSheetState();
+}
+
+class _RescheduleSheetState extends ConsumerState<_RescheduleSheet> {
+  DateTime? _date;
+  String? _slot;
+  bool _loading = false;
+  static const _slots = ['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:30 PM'];
+
+  Future<void> _save() async {
+    if (_date == null || _slot == null) return;
+    setState(() => _loading = true);
+    try {
+      int hour = int.parse(_slot!.split(':')[0]);
+      if (_slot!.contains('PM') && hour != 12) hour += 12;
+      if (_slot!.contains('AM') && hour == 12) hour = 0;
+      int min = int.parse(_slot!.split(':')[1].split(' ')[0]);
+      final exactTime = DateTime(_date!.year, _date!.month, _date!.day, hour, min);
+
+      await ref.read(bookingProvider.notifier).rescheduleBooking(
+        widget.booking['booking_id'],
+        {
+          'slot_time': '${_date!.day}/${_date!.month} at $_slot',
+          'slot_time_iso': exactTime.toIso8601String(),
+        }
+      );
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = widget.colors;
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+      decoration: BoxDecoration(
+        color: colors.scaffoldBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Reschedule Booking', style: kTitle(color: colors.textPrimary)),
+          const SizedBox(height: 16),
+          // Date Picker
+          SizedBox(
+            height: 70,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 14,
+              itemBuilder: (context, i) {
+                final d = DateTime.now().add(Duration(days: i + 1));
+                final isSelected = _date?.day == d.day && _date?.month == d.month;
+                return GestureDetector(
+                  onTap: () => setState(() => _date = d),
+                  child: Container(
+                    width: 65,
+                    margin: const EdgeInsets.only(right: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected ? kAccent : colors.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: isSelected ? kAccent : colors.navBorder),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][d.weekday - 1], style: kLabel(color: isSelected ? Colors.black : colors.textSecondary)),
+                        Text('${d.day}/${d.month}', style: kBody(color: isSelected ? Colors.black : colors.textPrimary)),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Time Picker
+          Wrap(spacing: 10, runSpacing: 10,
+            children: _slots.map((sl) => GestureDetector(
+              onTap: () => setState(() => _slot = sl),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                decoration: BoxDecoration(
+                  color: _slot == sl ? kAccent : colors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(sl, style: kLabel(color: _slot == sl ? Colors.black : colors.textSecondary)),
+              ),
+            )).toList(),
+          ),
+          const SizedBox(height: 24),
+          // Save Button
+          GestureDetector(
+            onTap: _loading ? null : _save,
+            child: Container(
+              height: 52, width: double.infinity,
+              decoration: BoxDecoration(
+                color: _loading || _date == null || _slot == null ? kAccent.withValues(alpha: 0.5) : kAccent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: _loading
+                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Text('Confirm Reschedule', style: kSubtitle(color: Colors.black)),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

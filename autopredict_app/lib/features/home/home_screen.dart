@@ -11,6 +11,7 @@ import '../../shared/widgets/car_top_view.dart';
 import '../../shared/widgets/floating_nav_bar.dart';
 import '../battery/battery_screen.dart';
 import '../parking/parking_screen.dart';
+import '../bookings/bookings_screen.dart';
 import '../chat/chat_screen.dart';
 import 'settings_tab.dart';
 
@@ -33,6 +34,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           _DashboardTab(),
           BatteryScreen(),
           ParkingScreen(),
+          const BookingsScreen(),
           ChatScreen(),
           SettingsTab(),
         ],

@@ -119,6 +119,14 @@ class _ServiceChatNotifier extends StateNotifier<List<_AgentMessage>> {
 
     final slotLabel = '${slot['date_label'] ?? ''} at ${slot['slot_time'] ?? ''}'.trim();
 
+    // Clear previous SHOW_SLOTS actions in state to hide the calendar
+    state = state.map((m) {
+      if (m.action == 'SHOW_SLOTS') {
+        return _AgentMessage(isAgent: m.isAgent, text: m.text, action: null, actionData: null);
+      }
+      return m;
+    }).toList();
+
     // Show user selection bubble
     state = [...state, _AgentMessage(
       isAgent: false,
@@ -131,7 +139,7 @@ class _ServiceChatNotifier extends StateNotifier<List<_AgentMessage>> {
     try {
       // Directly call the booking API
       final techs = ['Rajesh Kumar', 'Alice Rodriguez', 'Bob Chen', 'Diana Kim'];
-      final bays  = ['BAY-A', 'BAY-B', 'BAY-C'];
+      final bays  = ['BAY-1', 'BAY-2', 'BAY-3'];
       final techIdx = DateTime.now().millisecondsSinceEpoch % techs.length;
       final bayIdx  = DateTime.now().millisecondsSinceEpoch % bays.length;
 

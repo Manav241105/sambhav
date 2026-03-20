@@ -1,23 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import React, { createContext, useState, useRef, useCallback, useEffect, useContext } from 'react';
+import { WS_BASE } from '../config';
 
-/**
- * WebSocketProvider — singleton React context that manages a single
- * WS connection to /ws/dashboard and dispatches events to type-specific
- * subscribers.  Wrap your <App /> (or router) with this provider once;
- * then use `useWebSocket()` for raw access or `useWebSocketData(type)`
- * for targeted subscriptions.
- *
- * Event types dispatched by the backend:
- *   VEHICLE_UPDATED   → vehicle card + side panel refresh
- *   BOOKING_CREATED   → bay calendar + KPI cards refresh
- *   BOOKING_CANCELLED → bay calendar refresh
- *   ALERT_FIRED       → flash alert banner + RUL histogram
- *   CONVERSATION_TURN → funnel chart + conversation log
- *   DIAGNOSIS_UPDATED → vehicle card + side panel + fleet health
- *   WORKFLOW_COMPLETED→ general refresh
- */
-
-const WS_URL = 'ws://localhost:8000/ws/dashboard';
+const WS_URL = `${WS_BASE}/ws/dashboard`;
 const MAX_RETRIES = 10;
 const BASE_DELAY = 1000;
 

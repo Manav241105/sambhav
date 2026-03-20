@@ -14,8 +14,8 @@ class OllamaService {
 
   final Dio _dio = Dio(BaseOptions(
     baseUrl: _baseUrl,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 60),
+    connectTimeout: const Duration(seconds: 45),
+    receiveTimeout: const Duration(seconds: 120),
     headers: {
       'ngrok-skip-browser-warning': 'true', // required for ngrok tunnels
       'Content-Type': 'application/json',
@@ -117,7 +117,9 @@ DIAGNOSTICS:
 - Coolant System: 88°C (GOOD)
 - Tires: FL ${ctx['tyrePressure'] ?? '31.5'} PSI (WARNING — low)
 
+ACTIVE BOOKINGS: ${ctx['activeBooking'] ?? 'None'}
+
 Keep responses concise (2-3 sentences max). If the user wants to book a service, 
-end your response with ACTION:SHOW_BOOKING for brake pads, or ACTION:SHOW_ALERT for critical issues.''';
+end your response with ACTION:SHOW_BOOKING for brake pads, or ACTION:SHOW_ALERT for critical issues. If they already have an active booking, DO NOT show the booking action again, instead remind them of their upcoming appointment.''';
   }
 }

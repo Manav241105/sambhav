@@ -64,6 +64,15 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> patchBooking(String bookingId, Map<String, dynamic> body) async {
+    try {
+      final r = await _dio.patch('/bookings/$bookingId', data: body);
+      return r.data as Map<String, dynamic>;
+    } catch (_) {
+      return {'booking_id': bookingId, 'status': 'CONFIRMED', ...body};
+    }
+  }
+
   Future<void> cancelBooking(String bookingId) async {
     try {
       await _dio.delete('/bookings/$bookingId');
@@ -218,7 +227,7 @@ class ApiService {
       'service_component': 'brake_pads',
       'slot_time': 'Tomorrow · 10:00 AM',
       'technician_name': 'Rajesh Kumar',
-      'bay': 'BAY-A',
+      'bay': 'BAY-1',
       'priority': 'P1',
       'status': 'CONFIRMED',
     },

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
 import axios from 'axios';
 import { Truck, CalendarDays, MessageSquare, AlertTriangle } from 'lucide-react';
@@ -7,7 +7,9 @@ import DashboardLayout from '../../components/DashboardLayout';
 import AlertBanner from '../../components/AlertBanner';
 import LiveEventBus from '../../components/LiveEventBus';
 
-const API = 'http://localhost:8000';
+import { API_BASE } from '../../config';
+
+const API = API_BASE;
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 function latestTelem(telematics) {
@@ -39,7 +41,7 @@ export default function OperationsLayout() {
             const [vRes, aRes, bRes, cRes, sRes, wRes, fRes] = await Promise.all([
                 axios.get(`${API}/api/vehicles`),
                 axios.get(`${API}/api/dashboard/alerts`),
-                axios.get(`${API}/api/bookings/today`),
+                axios.get(`${API}/api/bookings`),
                 axios.get(`${API}/api/conversations`),
                 axios.get(`${API}/api/dashboard/summary`),
                 axios.get(`${API}/api/analytics/workload`).catch(() => ({ data: null })),

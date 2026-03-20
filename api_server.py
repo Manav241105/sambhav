@@ -110,7 +110,7 @@ def _seed_mock_bookings():
         return
 
     techs = ["Alice Rodriguez", "Bob Chen", "Carlos Diaz", "Diana Kim"]
-    bays = ["BAY-A", "BAY-B", "BAY-C", "BAY-D"]
+    bays = ["BAY-1", "BAY-2", "BAY-3", "BAY-4"]
     components = ["brake_pads", "battery", "coolant_system", "tires"]
 
     for i in range(6):

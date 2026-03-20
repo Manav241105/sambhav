@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useRef, useState, useCallback } from 'react';
+import React, { useMemo, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -10,7 +10,9 @@ import {
   AlertTriangle, Save, LayoutGrid, Activity
 } from 'lucide-react';
 
-const API = 'http://localhost:8000';
+import { API_BASE } from '../config';
+
+const API = API_BASE;
 const spring = { type: 'spring', stiffness: 220, damping: 20 };
 
 /* ── 10 Bays ─────────────────────────────────────────── */

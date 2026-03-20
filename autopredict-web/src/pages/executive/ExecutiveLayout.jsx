@@ -1,11 +1,13 @@
-﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Outlet } from 'react-router-dom';
 import axios from 'axios';
 import { DollarSign, Activity, ShieldAlert, Brain } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import LiveEventBus from '../../components/LiveEventBus';
 
-const API = 'http://localhost:8000';
+import { API_BASE } from '../../config';
+
+const API = API_BASE;
 const HEALTH_COLORS = ['#22c55e', '#fbbf24', '#ef4444'];
 const REVENUE_COLORS = ['#6366f1', '#38bdf8', '#a78bfa', '#fb923c', '#34d399', '#f472b6'];
 const AVG_REPAIR_COST = 2800;

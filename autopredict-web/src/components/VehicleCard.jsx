@@ -1,10 +1,12 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Gauge, Wrench, Clock, ChevronRight, MessageCircle } from 'lucide-react';
 import axios from 'axios';
 import TelematicsSparklines from './charts/TelematicsSparklines';
 
-const API = 'http://localhost:8000';
+import { API_BASE } from '../config';
+
+const API = API_BASE;
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 /* ── Priority colours ─────────────────────────────── */

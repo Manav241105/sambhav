@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/chat_message.dart';
 import '../services/ollama_service.dart';
 import 'vehicle_provider.dart';
+import 'booking_provider.dart';
 
 final _ollama = OllamaService();
 
@@ -41,6 +42,11 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
 
     // Get current vehicle context
     final vehicle = _ref.read(vehicleProvider);
+    final bookingsList = _ref.read(bookingProvider).value ?? [];
+    final activeBookings = bookingsList.where((b) => b['status'] != 'CANCELLED').toList();
+    final hasBooking = activeBookings.isNotEmpty;
+    final bookingDesc = hasBooking ? "${activeBookings.first['service_component']} at ${activeBookings.first['slot_time']}" : "None";
+
     final ctx = {
       'speed': vehicle.speedMph,
       'rpm': vehicle.rpm,
@@ -50,6 +56,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       'engineStatus': vehicle.engineStatus,
       'dtcCodes': vehicle.dtcCodes,
       'tyrePressure': vehicle.tyrePressureFl.toStringAsFixed(1),
+      'activeBooking': bookingDesc,
     };
 
     // Stream AI response
@@ -80,7 +87,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     String? actionType;
     Map<String, dynamic>? actionData;
 
-    if (accumulated.contains('ACTION:SHOW_BOOKING')) {
+    if (accumulated.contains('ACTION:SHOW_BOOKING') && !hasBooking) {
       actionType = 'BOOKING_CARD';
       actionData = {
         'service': 'Brake Pads Service',
@@ -124,6 +131,36 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         timestamp: DateTime.now(),
       ),
     ];
+  }
+
+  void clearAction(String messageId) {
+    state = state.map((m) {
+      if (m.id == messageId) {
+        return ChatMessage(
+          id: m.id,
+          isAI: m.isAI,
+          text: m.text,
+          timestamp: m.timestamp,
+        );
+      }
+      return m;
+    }).toList();
+  }
+
+  void confirmBookingAction(String messageId, Map<String, dynamic> booking) {
+    state = state.map((m) {
+      if (m.id == messageId) {
+        return ChatMessage(
+          id: m.id,
+          isAI: m.isAI,
+          text: 'Great news! ✅ Your service appointment has been confirmed.',
+          timestamp: m.timestamp,
+          actionType: 'BOOKING_CREATED',
+          actionData: {'booking': booking},
+        );
+      }
+      return m;
+    }).toList();
   }
 }
 
