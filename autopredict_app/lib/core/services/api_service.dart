@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 
-/// REST + data helpers for the FastAPI backend at localhost:8000
+/// REST + data helpers for the FastAPI backend at localhost:8001
 class ApiService {
   // Use PC's LAN IP so physical device can reach the FastAPI backend.
-  // Emulator alternative: 'http://10.0.2.2:8000/api'
-  static const _base = 'http://192.168.0.199:8000/api';
+  // Emulator alternative: 'http://10.0.2.2:8001/api'
+  static const _base = 'http://192.168.0.199:8001/api';
   static const _vehicleId = 'VEH001'; // default vehicle for the app
 
   final Dio _dio = Dio(BaseOptions(

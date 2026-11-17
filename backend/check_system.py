@@ -39,7 +39,7 @@ def check_ollama() -> Tuple[bool, str]:
 def check_api_server() -> Tuple[bool, str]:
     """Check if API server is running"""
     try:
-        resp = requests.get("http://localhost:8000/health", timeout=5)
+        resp = requests.get("http://localhost:8001/health", timeout=5)
         if resp.status_code == 200:
             return True, "Running and healthy"
         return False, f"Unexpected status code: {resp.status_code}"
@@ -52,7 +52,7 @@ def check_chat_endpoint() -> Tuple[bool, str]:
     """Check if chat endpoint works"""
     try:
         resp = requests.post(
-            "http://localhost:8000/api/chat",
+            "http://localhost:8001/api/chat",
             json={"message": "test", "vehicle_id": "VEH001"},
             timeout=30
         )

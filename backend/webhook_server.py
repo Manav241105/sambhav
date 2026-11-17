@@ -34,7 +34,7 @@ app.include_router(ws_router)
 # CORS — allow React dev server to reach the API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:5174"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -391,16 +391,16 @@ if __name__ == "__main__":
     print("🌐 STARTING WEBHOOK SERVER")
     print("="*80)
     print("\nEndpoints:")
-    print("  - WhatsApp: http://localhost:8000/webhook/whatsapp")
-    print("  - SMS:      http://localhost:8000/webhook/sms")
-    print("  - Email:    http://localhost:8000/webhook/email")
-    print("  - Test:     http://localhost:8000/test/simulate-response")
-    print("  - Health:   http://localhost:8000/health")
+    print("  - WhatsApp: http://localhost:8001/webhook/whatsapp")
+    print("  - SMS:      http://localhost:8001/webhook/sms")
+    print("  - Email:    http://localhost:8001/webhook/email")
+    print("  - Test:     http://localhost:8001/test/simulate-response")
+    print("  - Health:   http://localhost:8001/health")
     print("\nStarting server...\n")
     
     uvicorn.run(
         app,
         host="0.0.0.0",
-        port=8000,
+        port=8001,
         log_level="info"
     )

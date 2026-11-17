@@ -4,7 +4,7 @@ import { Gauge, Wrench, Clock, ChevronRight, MessageCircle } from 'lucide-react'
 import axios from 'axios';
 import TelematicsSparklines from './charts/TelematicsSparklines';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8001';
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 /* ── Priority colours ─────────────────────────────── */

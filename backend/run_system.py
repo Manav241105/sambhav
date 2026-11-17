@@ -12,9 +12,9 @@ load_dotenv()
 def run_server():
     """Run the FastAPI server"""
     print("\n🚀 Starting Voice AI Server...")
-    print("👉 API Docs available at: http://127.0.0.1:8000/docs")
+    print("👉 API Docs available at: http://127.0.0.1:8001/docs")
     sys.path.append(os.getcwd())  # Ensure path is correct
-    uvicorn.run("voice_api:app", host="0.0.0.0", port=8000, log_level="info")
+    uvicorn.run("voice_api:app", host="0.0.0.0", port=8001, log_level="info")
 
 def run_main_simulation():
     """Run the main system simulation"""

@@ -8,7 +8,7 @@ import {
 import DashboardLayout from '../components/DashboardLayout';
 import LiveEventBus from '../components/LiveEventBus';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8001';
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 const STATUS_CONFIG = {

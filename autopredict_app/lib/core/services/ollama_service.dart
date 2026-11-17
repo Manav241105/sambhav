@@ -8,7 +8,7 @@ class OllamaService {
   // 2. Copy the https URL (e.g. https://abc123.ngrok-free.app)
   // 3. Paste it below (no trailing slash)
   // 4. Hot-restart the app (Shift+R in flutter run terminal)
-  static const _baseUrl = 'https://discrepant-ungorged-adelaide.ngrok-free.dev';
+  static const _baseUrl = 'http://127.0.0.1:11434';
   // ──────────────────────────────────────────────────────────────────────────
   static const _model   = 'llama3:8b';
 

@@ -5,7 +5,7 @@ import { AlertTriangle, ShieldCheck, Users, Wrench } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import LiveEventBus from '../../components/LiveEventBus';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8001';
 export const tooltipStyle = { backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '12px', fontSize: 12, color: '#fff' };
 
 export default function ManagerLayout() {

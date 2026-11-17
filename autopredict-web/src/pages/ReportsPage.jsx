@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8001';
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 const REPORT_TYPES = [

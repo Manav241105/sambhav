@@ -10,7 +10,7 @@ import {
   AlertTriangle, Save, LayoutGrid, Activity
 } from 'lucide-react';
 
-const API = 'http://localhost:8000';
+const API = 'http://localhost:8001';
 const spring = { type: 'spring', stiffness: 220, damping: 20 };
 
 /* ── 10 Bays ─────────────────────────────────────────── */

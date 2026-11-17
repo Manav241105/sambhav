@@ -39,17 +39,17 @@ When the server starts successfully, you'll see:
 ================================================================================
 
 Endpoints:
-  - API: http://localhost:8000/api
-  - Chat: http://localhost:8000/api/chat
-  - Health: http://localhost:8000/health
-  - WebSocket: ws://localhost:8000/ws/dashboard
+  - API: http://localhost:8001/api
+  - Chat: http://localhost:8001/api/chat
+  - Health: http://localhost:8001/health
+  - WebSocket: ws://localhost:8001/ws/dashboard
 
 Starting server...
 
 INFO:     Started server process [12345]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000
+INFO:     Uvicorn running on http://0.0.0.0:8001
 ```
 
 ## Test It Works
@@ -78,9 +78,9 @@ If you're testing on a physical device (not emulator), you need to:
    - Mac/Linux: `ifconfig` or `ip addr`
 
 2. Update your mobile app's API URL from:
-   - `http://localhost:8000/api` 
-   - TO: `http://YOUR_IP_ADDRESS:8000/api`
-   - Example: `http://192.168.1.100:8000/api`
+   - `http://localhost:8001/api` 
+   - TO: `http://YOUR_IP_ADDRESS:8001/api`
+   - Example: `http://192.168.1.100:8001/api`
 
 3. Make sure your phone and computer are on the same WiFi network
 
@@ -90,11 +90,11 @@ If you're testing on a physical device (not emulator), you need to:
 Another process is using port 8000. Find and kill it:
 ```bash
 # Windows
-netstat -ano | findstr :8000
+netstat -ano | findstr :8001
 taskkill /PID <PID_NUMBER> /F
 
 # Linux/Mac
-lsof -ti:8000 | xargs kill -9
+lsof -ti:8001 | xargs kill -9
 ```
 
 ### "Module not found" errors

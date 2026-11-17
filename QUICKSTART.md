@@ -72,11 +72,11 @@ Once started, you should see:
 ================================================================================
 
 Endpoints:
-  - WhatsApp: http://localhost:8000/webhook/whatsapp
-  - SMS:      http://localhost:8000/webhook/sms
-  - Email:    http://localhost:8000/webhook/email
-  - Test:     http://localhost:8000/test/simulate-response
-  - Health:   http://localhost:8000/health
+  - WhatsApp: http://localhost:8001/webhook/whatsapp
+  - SMS:      http://localhost:8001/webhook/sms
+  - Email:    http://localhost:8001/webhook/email
+  - Test:     http://localhost:8001/test/simulate-response
+  - Health:   http://localhost:8001/health
 
 Starting server...
 ```
@@ -84,10 +84,10 @@ Starting server...
 Test the server:
 ```bash
 # Test health endpoint
-curl http://localhost:8000/health
+curl http://localhost:8001/health
 
 # Test chat endpoint
-curl -X POST http://localhost:8000/api/chat \
+curl -X POST http://localhost:8001/api/chat \
   -H "Content-Type: application/json" \
   -d '{"message":"hi","vehicle_id":"VEH001"}'
 ```
@@ -95,13 +95,13 @@ curl -X POST http://localhost:8000/api/chat \
 ## Mobile App Configuration
 
 The mobile app should connect to:
-- **API Base URL**: `http://localhost:8000/api`
-- **Chat Endpoint**: `http://localhost:8000/api/chat`
-- **WebSocket**: `ws://localhost:8000/ws/dashboard`
+- **API Base URL**: `http://localhost:8001/api`
+- **Chat Endpoint**: `http://localhost:8001/api/chat`
+- **WebSocket**: `ws://localhost:8001/ws/dashboard`
 
 If testing on a physical device, replace `localhost` with your computer's IP address:
 - Find your IP: `ipconfig` (Windows) or `ifconfig` (Linux/Mac)
-- Example: `http://192.168.1.100:8000/api`
+- Example: `http://192.168.1.100:8001/api`
 
 ## Troubleshooting
 

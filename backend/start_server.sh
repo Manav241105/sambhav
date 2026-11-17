@@ -15,13 +15,13 @@ if [ -f venv/bin/activate ]; then
 fi
 
 echo ""
-echo "Starting FastAPI server on http://localhost:8000"
+echo "Starting FastAPI server on http://localhost:8001"
 echo ""
 echo "Available endpoints:"
-echo "  - API: http://localhost:8000/api"
-echo "  - Chat: http://localhost:8000/api/chat"
-echo "  - Health: http://localhost:8000/health"
-echo "  - WebSocket: ws://localhost:8000/ws/dashboard"
+echo "  - API: http://localhost:8001/api"
+echo "  - Chat: http://localhost:8001/api/chat"
+echo "  - Health: http://localhost:8001/health"
+echo "  - WebSocket: ws://localhost:8001/ws/dashboard"
 echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""

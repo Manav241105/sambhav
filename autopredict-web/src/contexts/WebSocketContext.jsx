@@ -17,7 +17,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
  *   WORKFLOW_COMPLETED→ general refresh
  */
 
-const WS_URL = 'ws://localhost:8000/ws/dashboard';
+const WS_URL = 'ws://localhost:8001/ws/dashboard';
 const MAX_RETRIES = 10;
 const BASE_DELAY = 1000;
 
