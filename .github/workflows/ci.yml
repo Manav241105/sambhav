@@ -74,6 +74,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
+          # Pinned to the version used for development, so CI matches local results.
+          flutter-version: "3.41.4"
           channel: stable
           cache: true
       - run: flutter pub get
