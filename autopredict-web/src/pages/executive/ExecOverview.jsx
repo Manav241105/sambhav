@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import FleetHealthScoreGauge from '../../components/charts/FleetHealthScoreGauge';
@@ -10,7 +10,7 @@ import ROIDashboard from '../../components/charts/ROIDashboard';
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 export default function ExecOverview() {
-    const { bigMetrics, loading, fleetHealthScore, vehicles, summary, kpiTrends, roiData } = useOutletContext();
+    const { bigMetrics, fleetHealthScore, vehicles, summary, kpiTrends, roiData, costAvoidance } = useOutletContext();
 
     return (
         <div>
@@ -62,7 +62,7 @@ export default function ExecOverview() {
 
             {/* Cost Avoidance Waterfall + ROI Dashboard */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <CostAvoidanceWaterfall vehicles={vehicles} />
+                <CostAvoidanceWaterfall breakdown={costAvoidance.breakdown} total={costAvoidance.total} />
                 <ROIDashboard roi={roiData} />
             </div>
         </div>

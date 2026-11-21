@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
@@ -12,6 +12,13 @@ const tooltipStyle = { backgroundColor: '#1f2937', border: '1px solid #374151', 
 
 export default function ExecTrends() {
     const { monthlyTrend, monthly, conversionByMake } = useOutletContext();
+    // Baseline = last full month of real data (the current month is partial).
+    const lastFull = monthly.length > 1 ? monthly[monthly.length - 2] : null;
+    const whatIfBaseline = lastFull && lastFull.avg_service_hours ? {
+        bookings_per_week: Math.round(lastFull.bookings / 4.35),
+        avg_service_hours: lastFull.avg_service_hours,
+        acceptance_pct: Math.round((lastFull.acceptance_rate || 0) * 100),
+    } : null;
 
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
@@ -60,7 +67,7 @@ export default function ExecTrends() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ConversionScatterByMake makes={conversionByMake} />
-                <WhatIfSimulator />
+                {whatIfBaseline ? <WhatIfSimulator baseline={whatIfBaseline} /> : null}
             </div>
         </motion.div>
     );

@@ -3,12 +3,12 @@ Communication Service - v4.1
 Multi-channel communication with escalation and priority handling
 """
 
-import os
 from typing import Dict, Optional
 from datetime import datetime
 from abc import ABC, abstractmethod
 
 from config import SystemConfig, CommunicationChannel
+from core.settings import is_configured
 
 
 class CommunicationResult:
@@ -60,7 +60,7 @@ class EmailProvider(CommunicationProvider):
         self.smtp_server = self.config.get("smtp_server")
         self.smtp_port = self.config.get("smtp_port")
         self.from_email = self.config.get("from_email")
-        self.password = os.getenv("EMAIL_PASSWORD", self.config.get("password"))
+        self.password = self.config.get("password")
     
     async def send_message(self, to: str, message: str, 
                           subject: Optional[str] = None,
@@ -134,7 +134,7 @@ class EmailProvider(CommunicationProvider):
     
     def is_configured(self) -> bool:
         """Check if email is configured"""
-        return bool(self.smtp_server and self.from_email)
+        return all(map(is_configured, (self.smtp_server, self.from_email, self.password)))
 
 
 class WhatsAppProvider(CommunicationProvider):
@@ -142,7 +142,7 @@ class WhatsAppProvider(CommunicationProvider):
     
     def __init__(self):
         self.config = SystemConfig.WHATSAPP_CONFIG
-        self.api_key = os.getenv("WHATSAPP_API_KEY", self.config.get("api_key"))
+        self.api_key = self.config.get("api_key")
         self.from_number = self.config.get("from_number")
     
     async def send_message(self, to: str, message: str, 
@@ -210,7 +210,7 @@ class WhatsAppProvider(CommunicationProvider):
     
     def is_configured(self) -> bool:
         """Check if WhatsApp is configured"""
-        return bool(self.api_key and self.from_number)
+        return all(map(is_configured, (self.api_key, self.from_number)))
 
 
 class SMSProvider(CommunicationProvider):
@@ -218,8 +218,8 @@ class SMSProvider(CommunicationProvider):
     
     def __init__(self):
         self.config = SystemConfig.TWILIO_CONFIG
-        self.account_sid = os.getenv("TWILIO_SID", self.config.get("account_sid"))
-        self.auth_token = os.getenv("TWILIO_TOKEN", self.config.get("auth_token"))
+        self.account_sid = self.config.get("account_sid")
+        self.auth_token = self.config.get("auth_token")
         self.from_number = self.config.get("from_number")
     
     async def send_message(self, to: str, message: str, 
@@ -290,7 +290,7 @@ class SMSProvider(CommunicationProvider):
     
     def is_configured(self) -> bool:
         """Check if SMS is configured"""
-        return bool(self.account_sid and self.auth_token and self.from_number)
+        return all(map(is_configured, (self.account_sid, self.auth_token, self.from_number)))
 
 
 class VoiceCallProvider(CommunicationProvider):
@@ -298,8 +298,8 @@ class VoiceCallProvider(CommunicationProvider):
     
     def __init__(self):
         self.config = SystemConfig.TWILIO_CONFIG
-        self.account_sid = os.getenv("TWILIO_SID", self.config.get("account_sid"))
-        self.auth_token = os.getenv("TWILIO_TOKEN", self.config.get("auth_token"))
+        self.account_sid = self.config.get("account_sid")
+        self.auth_token = self.config.get("auth_token")
         self.from_number = self.config.get("from_number")
     
     async def send_message(self, to: str, message: str, 
@@ -384,7 +384,7 @@ class VoiceCallProvider(CommunicationProvider):
     
     def is_configured(self) -> bool:
         """Check if voice call is configured"""
-        return bool(self.account_sid and self.auth_token and self.from_number)
+        return all(map(is_configured, (self.account_sid, self.auth_token, self.from_number)))
 
 
 class CommunicationService:

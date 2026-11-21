@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import { TrendingUp, TrendingDown, Zap } from 'lucide-react';
@@ -11,7 +11,7 @@ const spring = { type: 'spring', stiffness: 100, damping: 10 };
 const tooltipStyle = { backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '12px', fontSize: 12, color: '#fff' };
 
 export default function ManagerOverview() {
-    const { statCards, loading, agentPerformance, conversationVolume, bookingFunnel, bookingVelocity, sentimentData } = useOutletContext();
+    const { statCards, agentPerformance, conversationVolume, bookingFunnel, bookingVelocity, sentimentData } = useOutletContext();
 
     return (
         <div className="space-y-8">

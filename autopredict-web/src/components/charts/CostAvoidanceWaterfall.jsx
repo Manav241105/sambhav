@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatINR, formatINRCompact } from '../../lib/format';
 import { motion } from 'framer-motion';
 
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
@@ -6,7 +7,7 @@ const spring = { type: 'spring', stiffness: 100, damping: 10 };
 /**
  * Cumulative cost-avoidance waterfall chart — each vehicle adds a segment.
  *
- * @param {{ breakdown: Array<{vehicle_id:string, component:string, cost_avoided_usd:number, cumulative_usd:number}>, total: number }} props
+ * @param {{ breakdown: Array<{vehicle_id:string, component:string, cost_avoided_inr:number, cumulative_inr:number}>, total: number }} props
  */
 export default function CostAvoidanceWaterfall({ breakdown = [], total = 0 }) {
     if (!breakdown.length) {
@@ -27,8 +28,8 @@ export default function CostAvoidanceWaterfall({ breakdown = [], total = 0 }) {
         );
     }
 
-    const maxVal = Math.max(...breakdown.map((b) => b.cumulative_usd), total, 1);
-    const fmt = (v) => `$${(v / 1000).toFixed(1)}k`;
+    const maxVal = Math.max(...breakdown.map((b) => b.cumulative_inr), total, 1);
+    const fmt = (v) => formatINRCompact(v);
 
     return (
         <motion.div
@@ -46,14 +47,14 @@ export default function CostAvoidanceWaterfall({ breakdown = [], total = 0 }) {
 
             <div className="flex items-end gap-2 h-[240px]">
                 {breakdown.map((b, i) => {
-                    const segmentH = (b.cost_avoided_usd / maxVal) * 100;
-                    const offsetH = ((b.cumulative_usd - b.cost_avoided_usd) / maxVal) * 100;
+                    const segmentH = (b.cost_avoided_inr / maxVal) * 100;
+                    const offsetH = ((b.cumulative_inr - b.cost_avoided_inr) / maxVal) * 100;
 
                     return (
-                        <div key={b.vehicle_id} className="flex-1 flex flex-col items-center justify-end h-full" title={`${b.vehicle_id}: +$${b.cost_avoided_usd.toLocaleString()}`}>
+                        <div key={b.vehicle_id} className="flex-1 flex flex-col items-center justify-end h-full" title={`${b.vehicle_id}: +${formatINR(b.cost_avoided_inr)}`}>
                             <div className="w-full flex flex-col items-center justify-end" style={{ height: '100%' }}>
                                 <span className="text-[9px] font-bold text-emerald-500 mb-1">
-                                    +{fmt(b.cost_avoided_usd)}
+                                    +{fmt(b.cost_avoided_inr)}
                                 </span>
                                 <div className="w-full relative" style={{ marginBottom: `${offsetH}%` }}>
                                     <motion.div

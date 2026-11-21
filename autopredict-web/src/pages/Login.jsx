@@ -1,7 +1,9 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShieldCheck, BarChart3, Settings2, ArrowLeft } from 'lucide-react';
+import api, { errorMessage } from '../lib/api';
+import { ROLE_HOME, saveSession } from '../lib/auth';
 
 /* ── Spring config matching HeroSection ───────────── */
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
@@ -36,24 +38,26 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (!selected) {
-      setError('Please select a role first.');
-      return;
-    }
     if (!email || !password) {
       setError('Enter email and password.');
       return;
     }
-
-    /* Mock JWT — store role + token in localStorage */
-    const mockToken = btoa(JSON.stringify({ role: selected.key, email, exp: Date.now() + 86400000 }));
-    localStorage.setItem('ap_token', mockToken);
-    localStorage.setItem('ap_role', selected.key);
-
-    navigate(selected.path);
+    setError('');
+    setSubmitting(true);
+    try {
+      const { data } = await api.post('/api/auth/login', { email: email.trim(), password });
+      saveSession(data);
+      // The account's role decides the dashboard; the cards above are only a preview.
+      navigate(ROLE_HOME[data.role] || '/dashboard/operations');
+    } catch (err) {
+      setError(errorMessage(err, 'Could not sign in. Check that the server is running.'));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -149,12 +153,13 @@ export default function Login() {
 
           <motion.button
             type="submit"
+            disabled={submitting}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
             transition={spring}
-            className="w-full py-3 text-sm font-bold text-[#0b0f19] transition-colors bg-[#6366f1] rounded-xl hover:brightness-110"
+            className="w-full py-3 text-sm font-bold text-[#0b0f19] transition-colors bg-[#6366f1] rounded-xl hover:brightness-110 disabled:opacity-60"
           >
-            Sign In
+            {submitting ? 'Signing in…' : 'Sign In'}
           </motion.button>
         </form>
 

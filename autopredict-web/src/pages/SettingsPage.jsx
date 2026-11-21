@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Settings2, Users, Bell, Brain, Clock,
@@ -20,6 +20,20 @@ const PRIORITY_THRESHOLDS = [
     { key: 'p1_rul', label: 'P1 Alert — Trigger at RUL (days) ≤', defaultVal: 14, min: 7, max: 30 },
     { key: 'auto_schedule', label: 'Auto-schedule when RUL ≤ (days)', defaultVal: 10, min: 3, max: 21 },
 ];
+
+// Defined outside the page so it isn't re-created on every render.
+const Toggle = ({ value, onChange }) => (
+    <button
+        onClick={() => onChange(!value)}
+        className={`relative w-10 h-5 rounded-full transition-colors ${value ? 'bg-[#6366f1]' : 'bg-gray-200 dark:bg-white/10'}`}
+    >
+        <motion.div
+            animate={{ x: value ? 22 : 2 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className="absolute top-1 w-3 h-3 rounded-full bg-white shadow"
+        />
+    </button>
+);
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('team');
@@ -65,19 +79,6 @@ export default function SettingsPage() {
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
     };
-
-    const Toggle = ({ value, onChange }) => (
-        <button
-            onClick={() => onChange(!value)}
-            className={`relative w-10 h-5 rounded-full transition-colors ${value ? 'bg-[#6366f1]' : 'bg-gray-200 dark:bg-white/10'}`}
-        >
-            <motion.div
-                animate={{ x: value ? 22 : 2 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                className="absolute top-1 w-3 h-3 rounded-full bg-white shadow"
-            />
-        </button>
-    );
 
     return (
         <DashboardLayout title="Settings">

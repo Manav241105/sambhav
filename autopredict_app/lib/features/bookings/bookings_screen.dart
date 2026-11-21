@@ -49,8 +49,15 @@ class _BookingList extends StatelessWidget {
     itemCount: bookings.length,
     separatorBuilder: (_, __) => const SizedBox(height: 12),
     itemBuilder: (_, i) => _BookingCard(booking: bookings[i], colors: colors,
-        onCancel: () => ref.read(bookingProvider.notifier)
-            .cancelBooking(bookings[i]['booking_id'])),
+        onCancel: () async {
+          try {
+            await ref.read(bookingProvider.notifier).cancelBooking(bookings[i]['booking_id']);
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+            }
+          }
+        }),
   );
 }
 

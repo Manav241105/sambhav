@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/services/session.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 
@@ -27,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen>
     _ctrl.forward();
 
     Future.delayed(const Duration(milliseconds: 2200), () {
-      if (mounted) context.go('/onboarding');
+      if (mounted) context.go(Session.isSignedIn ? '/home' : '/onboarding');
     });
   }
 

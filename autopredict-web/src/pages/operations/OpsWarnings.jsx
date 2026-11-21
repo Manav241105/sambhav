@@ -94,27 +94,22 @@ function AlertRow({ alert, onDismiss, onSelect, index }) {
 export default function OpsWarnings() {
     const { alerts = [], dismissAlert, selectFromAlert } = useOutletContext();
     const [filter, setFilter] = useState('All');
-    const [dismissed, setDismissed] = useState(new Set());
-
-    const visible = alerts.filter(a =>
-        !dismissed.has(a.vehicle_id + a.message) &&
-        (filter === 'All' || a.priority === filter)
-    );
+    // Acknowledged alerts disappear from the server's list, so no local hidden-set is needed.
+    const visible = alerts.filter(a => filter === 'All' || a.priority === filter);
 
     const counts = FILTERS.reduce((acc, f) => {
         acc[f] = f === 'All'
-            ? alerts.filter(a => !dismissed.has(a.vehicle_id + a.message)).length
-            : alerts.filter(a => a.priority === f && !dismissed.has(a.vehicle_id + a.message)).length;
+            ? alerts.length
+            : alerts.filter(a => a.priority === f).length;
         return acc;
     }, {});
 
     function handleDismiss(alert) {
-        setDismissed(prev => new Set([...prev, alert.vehicle_id + alert.message]));
+        dismissAlert?.(alert);
     }
 
     function dismissAll() {
-        const keys = new Set(alerts.map(a => a.vehicle_id + a.message));
-        setDismissed(keys);
+        visible.forEach((a) => dismissAlert?.(a));
     }
 
     return (

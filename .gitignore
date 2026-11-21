@@ -22,3 +22,15 @@ dist/
 # Misc
 *.log
 _test_*.py
+
+# Local databases and tool caches
+backend/autopredict.db
+backend/autopredict.db-*
+.pytest_cache/
+.ruff_cache/
+
+# Frontend local env
+autopredict-web/.env.local
+
+# Future RAG vector store (Phase 2)
+backend/rag_store/

@@ -1,20 +1,13 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../lib/api';
 import { Truck, CalendarDays, MessageSquare, AlertTriangle } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 
 import AlertBanner from '../../components/AlertBanner';
 import LiveEventBus from '../../components/LiveEventBus';
 
-const API = 'http://localhost:8001';
-const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
-function latestTelem(telematics) {
-    if (!telematics) return {};
-    if (Array.isArray(telematics)) return telematics[telematics.length - 1] || {};
-    return telematics;
-}
 
 export default function OperationsLayout() {
     const [vehicles, setVehicles] = useState([]);
@@ -30,6 +23,7 @@ export default function OperationsLayout() {
     /* ── Phase 2 state ──────────────────────────────── */
     const [vehicleHistory, setVehicleHistory] = useState([]);
     const [historyLoading, setHistoryLoading] = useState(false);
+    const [serviceHistory, setServiceHistory] = useState([]);
     const [workloadData, setWorkloadData] = useState(null);
     const [fleetAnalytics, setFleetAnalytics] = useState(null);
     const [diagnosing, setDiagnosing] = useState(false);
@@ -37,13 +31,13 @@ export default function OperationsLayout() {
     const fetchAll = useCallback(async () => {
         try {
             const [vRes, aRes, bRes, cRes, sRes, wRes, fRes] = await Promise.all([
-                axios.get(`${API}/api/vehicles`),
-                axios.get(`${API}/api/dashboard/alerts`),
-                axios.get(`${API}/api/bookings/today`),
-                axios.get(`${API}/api/conversations`),
-                axios.get(`${API}/api/dashboard/summary`),
-                axios.get(`${API}/api/analytics/workload`).catch(() => ({ data: null })),
-                axios.get(`${API}/api/analytics/fleet`).catch(() => ({ data: null })),
+                api.get(`/api/vehicles`),
+                api.get(`/api/dashboard/alerts`),
+                api.get(`/api/bookings/today`),
+                api.get(`/api/conversations`),
+                api.get(`/api/dashboard/summary`),
+                api.get(`/api/analytics/workload`).catch(() => ({ data: null })),
+                api.get(`/api/analytics/fleet`).catch(() => ({ data: null })),
             ]);
             setVehicles(Array.isArray(vRes.data) ? vRes.data : Object.values(vRes.data));
             setAlerts(Array.isArray(aRes.data) ? aRes.data : []);
@@ -70,7 +64,7 @@ export default function OperationsLayout() {
         if (!selectedVehicle) { setManufacturing(null); return; }
         let cancelled = false;
         setMfgLoading(true);
-        axios.get(`${API}/api/vehicles/${selectedVehicle.vehicle_id}/manufacturing`)
+        api.get(`/api/vehicles/${selectedVehicle.vehicle_id}/manufacturing`)
             .then((r) => { if (!cancelled) setManufacturing(r.data); })
             .catch(() => { if (!cancelled) setManufacturing(null); })
             .finally(() => { if (!cancelled) setMfgLoading(false); });
@@ -82,10 +76,20 @@ export default function OperationsLayout() {
         if (!selectedVehicle) { setVehicleHistory([]); return; }
         let cancelled = false;
         setHistoryLoading(true);
-        axios.get(`${API}/api/vehicles/${selectedVehicle.vehicle_id}/history?days=7`)
-            .then((r) => { if (!cancelled) setVehicleHistory(Array.isArray(r.data) ? r.data : []); })
+        api.get(`/api/vehicles/${selectedVehicle.vehicle_id}/history?days=7`)
+            .then((r) => { if (!cancelled) setVehicleHistory(r.data?.history || []); })
             .catch(() => { if (!cancelled) setVehicleHistory([]); })
             .finally(() => { if (!cancelled) setHistoryLoading(false); });
+        return () => { cancelled = true; };
+    }, [selectedVehicle]);
+
+    /* ── Workshop service history for the selected vehicle ── */
+    useEffect(() => {
+        if (!selectedVehicle) { setServiceHistory([]); return; }
+        let cancelled = false;
+        api.get(`/api/vehicles/${selectedVehicle.vehicle_id}/service-history?limit=10`)
+            .then((r) => { if (!cancelled) setServiceHistory(r.data?.records || []); })
+            .catch(() => { if (!cancelled) setServiceHistory([]); });
         return () => { cancelled = true; };
     }, [selectedVehicle]);
 
@@ -93,13 +97,10 @@ export default function OperationsLayout() {
     const triggerDiagnosis = useCallback(async (vehicleId) => {
         setDiagnosing(true);
         try {
-            await axios.post(`${API}/api/vehicles/${vehicleId}/diagnose`);
+            await api.post(`/api/vehicles/${vehicleId}/diagnose`);
             await fetchAll();
-            // Re-select the vehicle to get updated data
-            const vRes = await axios.get(`${API}/api/vehicles`);
-            const refreshed = (Array.isArray(vRes.data) ? vRes.data : Object.values(vRes.data))
-                .find(v => v.vehicle_id === vehicleId);
-            if (refreshed) setSelectedVehicle(refreshed);
+            const { data: refreshed } = await api.get(`/api/vehicles/${vehicleId}`);
+            setSelectedVehicle(refreshed);
         } catch (err) {
             console.error('Diagnosis error:', err);
         } finally {
@@ -107,7 +108,16 @@ export default function OperationsLayout() {
         }
     }, [fetchAll]);
 
-    const dismissAlert = (i) => setAlerts((prev) => prev.filter((_, idx) => idx !== i));
+    // Acknowledge on the server so the alert stays dismissed for everyone.
+    const dismissAlert = async (alert) => {
+        if (!alert?.id) return;
+        try {
+            await api.post(`/api/dashboard/alerts/${alert.id}/ack`);
+            setAlerts((prev) => prev.filter((a) => a.id !== alert.id));
+        } catch (err) {
+            console.error('Acknowledge failed:', err);
+        }
+    };
     const selectFromAlert = (alert) => {
         const v = vehicles.find((v) => v.vehicle_id === alert.vehicle_id);
         if (v) setSelectedVehicle(v);
@@ -147,7 +157,7 @@ export default function OperationsLayout() {
         selectedVehicle, setSelectedVehicle, manufacturing, mfgLoading,
         dismissAlert, selectFromAlert, statCards, fleetHealthPie, telematicsTrend,
         /* Phase 2 */
-        vehicleHistory, historyLoading, workloadData, fleetAnalytics,
+        vehicleHistory, historyLoading, serviceHistory, workloadData, fleetAnalytics,
         diagnosing, triggerDiagnosis, fetchAll,
     };
 

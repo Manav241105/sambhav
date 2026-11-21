@@ -1,6 +1,8 @@
-﻿import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import api, { logout } from '../lib/api';
+import { getEmail, getRole } from '../lib/auth';
 import {
   LayoutDashboard,
   Truck,
@@ -53,30 +55,39 @@ const NAV_ITEMS = {
 const ROLE_LABELS = { ops: 'Operations', manager: 'Manager', executive: 'Executive' };
 
 /* ── Mock notification data ────────────────────────── */
-const MOCK_NOTIFICATIONS = [
-  { id: 1, priority: 'P0', vehicle: 'VEH003', message: 'Critical brake failure risk', time: '2 min ago', read: false },
-  { id: 2, priority: 'P1', vehicle: 'VEH007', message: 'Battery voltage below threshold', time: '18 min ago', read: false },
-  { id: 3, priority: 'P0', vehicle: 'VEH001', message: 'Coolant system critical', time: '45 min ago', read: true },
-  { id: 4, priority: 'P2', vehicle: 'VEH009', message: 'Tire pressure warning — FL', time: '1h ago', read: true },
-  { id: 5, priority: 'P1', vehicle: 'VEH002', message: 'Oil pressure dropping', time: '2h ago', read: true },
-];
+
+function relativeTime(iso) {
+  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1440) return `${Math.round(mins / 60)}h ago`;
+  return `${Math.round(mins / 1440)}d ago`;
+}
 
 export default function Sidebar({ onCollapseChange }) {
   const navigate = useNavigate();
-  const role = localStorage.getItem('ap_role') || 'ops';
-  const email = (() => {
-    try {
-      const t = localStorage.getItem('ap_token');
-      if (!t) return 'user@autopredict.io';
-      return JSON.parse(atob(t)).email || 'user@autopredict.io';
-    } catch { return 'user@autopredict.io'; }
-  })();
+  const role = getRole() || 'ops';
+  const email = getEmail() || '';
   const items = NAV_ITEMS[role] || NAV_ITEMS.ops;
   const [collapsed, setCollapsed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState([]);
+
+  // Latest open alerts from the API; "read" is a local view state, acknowledging happens on the Warnings page.
+  useEffect(() => {
+    let cancelled = false;
+    api.get('/api/dashboard/alerts', { params: { limit: 8 } })
+      .then(({ data }) => {
+        if (cancelled) return;
+        setNotifications(data.map((a) => ({
+          id: a.id, priority: a.priority, vehicle: a.vehicle_id, message: a.message,
+          time: relativeTime(a.fired_at), read: false,
+        })));
+      })
+      .catch(() => { /* sidebar stays empty if alerts can't load */ });
+    return () => { cancelled = true; };
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -85,9 +96,8 @@ export default function Sidebar({ onCollapseChange }) {
     onCollapseChange?.(val);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('ap_token');
-    localStorage.removeItem('ap_role');
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 

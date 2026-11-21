@@ -1,19 +1,135 @@
 import 'package:dio/dio.dart';
 
-/// REST + data helpers for the FastAPI backend at localhost:8001
-class ApiService {
-  // Use PC's LAN IP so physical device can reach the FastAPI backend.
-  // Emulator alternative: 'http://10.0.2.2:8001/api'
-  static const _base = 'http://192.168.0.199:8001/api';
-  static const _vehicleId = 'VEH001'; // default vehicle for the app
+import 'session.dart';
 
-  final Dio _dio = Dio(BaseOptions(
-    baseUrl: _base,
-    connectTimeout: const Duration(seconds: 8),
-    receiveTimeout: const Duration(seconds: 15),
-  ));
+/// Thrown when an API call fails in a way the user should see.
+class ApiException implements Exception {
+  final String message;
+  final int? statusCode;
+  ApiException(this.message, [this.statusCode]);
+  @override
+  String toString() => message;
+}
+
+/// REST client for the AutoPredict API.
+///
+/// Server address is set at build time:
+///   flutter run --dart-define=API_BASE_URL=http://192.168.1.20:8001/api
+/// Default targets the Android emulator's alias for the host machine.
+class ApiService {
+  static const _base = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://10.0.2.2:8001/api');
+
+  // One client for the whole app (auth header + token refresh live here).
+  static final Dio _dio = _buildClient();
+
+  static Dio _buildClient() {
+    final dio = Dio(BaseOptions(
+      baseUrl: _base,
+      connectTimeout: const Duration(seconds: 8),
+      receiveTimeout: const Duration(seconds: 15),
+    ));
+    dio.interceptors.add(QueuedInterceptorsWrapper(
+      onRequest: (options, handler) {
+        final token = Session.accessToken;
+        if (token != null) options.headers['Authorization'] = 'Bearer $token';
+        handler.next(options);
+      },
+      onError: (error, handler) async {
+        final req = error.requestOptions;
+        final isAuthCall = req.path.startsWith('/auth/');
+        if (error.response?.statusCode == 401 && !isAuthCall && req.extra['retried'] != true) {
+          if (await _refresh()) {
+            req.extra['retried'] = true;
+            req.headers['Authorization'] = 'Bearer ${Session.accessToken}';
+            try {
+              return handler.resolve(await dio.fetch(req));
+            } on DioException catch (e) {
+              return handler.next(e);
+            }
+          }
+          await Session.clear(); // refresh failed: the router sends the user to /login
+        }
+        handler.next(error);
+      },
+    ));
+    return dio;
+  }
+
+  static Future<bool> _refresh() async {
+    final refresh = Session.refreshToken;
+    if (refresh == null) return false;
+    try {
+      final r = await Dio(BaseOptions(baseUrl: _base)).post('/auth/refresh', data: {'refresh_token': refresh});
+      await Session.saveTokens(Map<String, dynamic>.from(r.data as Map));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static String _message(Object e, String fallback) {
+    if (e is DioException) {
+      final detail = (e.response?.data is Map) ? (e.response!.data as Map)['detail'] : null;
+      if (detail is String) return detail;
+      if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.connectionError) {
+        return 'Can\'t reach the AutoPredict server. Check your connection.';
+      }
+    }
+    return fallback;
+  }
+
+  /// The signed-in owner's selected car.
+  String get _vehicleId => Session.vehicleId ?? '';
+
+  // ── Auth (owner phone + one-time code) ────────────────────────────────────
+  /// Returns the server response; in development it includes `debug_otp`.
+  Future<Map<String, dynamic>> sendOtp(String phone) async {
+    try {
+      final r = await _dio.post('/auth/otp/send', data: {'phone': phone});
+      return Map<String, dynamic>.from(r.data as Map);
+    } catch (e) {
+      throw ApiException(_message(e, 'Could not send the code. Try again.'));
+    }
+  }
+
+  /// Verifies the code, stores the session and selects the owner's first car.
+  Future<void> verifyOtp(String phone, String code) async {
+    try {
+      final r = await _dio.post('/auth/otp/verify', data: {'phone': phone, 'otp': code});
+      await Session.saveTokens(Map<String, dynamic>.from(r.data as Map));
+      final cars = await _dio.get('/me/vehicles');
+      final list = List<Map<String, dynamic>>.from(cars.data as List);
+      await Session.selectVehicle(list.isNotEmpty ? list.first['vehicle_id'] as String : null);
+    } catch (e) {
+      throw ApiException(_message(e, 'Could not verify the code. Try again.'));
+    }
+  }
+
+  Future<void> logout() async {
+    final refresh = Session.refreshToken;
+    if (refresh != null) {
+      try {
+        await _dio.post('/auth/logout', data: {'refresh_token': refresh});
+      } catch (_) {
+        // Token already invalid server-side; clearing locally is enough.
+      }
+    }
+    await Session.clear();
+  }
 
   // ── Vehicles ─────────────────────────────────────────────────────────────
+  /// The signed-in owner's selected car with its per-part assessment.
+  /// Throws [ApiException] instead of falling back to sample data.
+  Future<Map<String, dynamic>> getVehicleDetail() async {
+    if (_vehicleId.isEmpty) throw ApiException('No vehicle linked to this account yet.');
+    try {
+      final r = await _dio.get('/vehicles/$_vehicleId');
+      return Map<String, dynamic>.from(r.data as Map);
+    } catch (e) {
+      throw ApiException(_message(e, 'Could not load your car\'s health.'));
+    }
+  }
+
   Future<Map<String, dynamic>> getVehicle([String? id]) async {
     try {
       final r = await _dio.get('/vehicles/${id ?? _vehicleId}');
@@ -42,32 +158,44 @@ class ApiService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getAvailableSlots(String date) async {
+  /// Free start times on [date] (YYYY-MM-DD) for a job type, from the workshop calendar.
+  Future<List<Map<String, dynamic>>> getAvailableSlots(String date, {String component = 'Full Service'}) async {
     try {
-      final r = await _dio.get('/availability', queryParameters: {'date': date});
+      final r = await _dio.get('/availability', queryParameters: {'date': date, 'component': component});
       final slots = r.data['slots'] as List;
       return slots
           .where((s) => s['available'] == true)
           .map((s) => Map<String, dynamic>.from(s as Map))
           .toList();
-    } catch (_) {
-      return _mockSlots();
+    } catch (e) {
+      throw ApiException(_message(e, 'Could not load free slots.'));
     }
   }
 
-  Future<Map<String, dynamic>> createBooking(Map<String, dynamic> body) async {
+  /// Creates a booking for the signed-in owner's car. Throws [ApiException] on failure;
+  /// never returns a pretend confirmation.
+  Future<Map<String, dynamic>> createBooking({
+    required String component,
+    required String slotTimeIso,
+  }) async {
     try {
-      final r = await _dio.post('/bookings', data: body);
-      return r.data as Map<String, dynamic>;
-    } catch (_) {
-      return {'booking_id': 'BK-LOCAL-001', 'status': 'CONFIRMED', ...body};
+      final r = await _dio.post('/bookings', data: {
+        'vehicle_id': _vehicleId,
+        'service_component': component,
+        'slot_time_iso': slotTimeIso,
+      });
+      return Map<String, dynamic>.from(r.data as Map);
+    } catch (e) {
+      throw ApiException(_message(e, 'Booking failed. Please try another slot.'));
     }
   }
 
   Future<void> cancelBooking(String bookingId) async {
     try {
       await _dio.delete('/bookings/$bookingId');
-    } catch (_) {}
+    } catch (e) {
+      throw ApiException(_message(e, 'Could not cancel the booking.'));
+    }
   }
 
   // ── Dashboard / Alerts ────────────────────────────────────────────────────
@@ -224,11 +352,4 @@ class ApiService {
     },
   ];
 
-  List<Map<String, dynamic>> _mockSlots() => [
-    {'slot_time': '09:00 AM', 'slot_time_iso': '2025-03-18T09:00:00', 'available': true},
-    {'slot_time': '10:00 AM', 'slot_time_iso': '2025-03-18T10:00:00', 'available': true},
-    {'slot_time': '11:00 AM', 'slot_time_iso': '2025-03-18T11:00:00', 'available': true},
-    {'slot_time': '02:00 PM', 'slot_time_iso': '2025-03-18T14:00:00', 'available': true},
-    {'slot_time': '03:00 PM', 'slot_time_iso': '2025-03-18T15:00:00', 'available': true},
-  ];
 }

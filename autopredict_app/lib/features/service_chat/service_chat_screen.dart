@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../core/services/session.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -83,7 +84,7 @@ class _ServiceChatNotifier extends StateNotifier<List<_AgentMessage>> {
 
       final result = await _api.serviceChat(
         message: text,
-        vehicleId: 'VEH001',
+        vehicleId: Session.vehicleId ?? '',
         history: _history,
         vehicleContext: ctx,
       );
@@ -129,31 +130,19 @@ class _ServiceChatNotifier extends StateNotifier<List<_AgentMessage>> {
     state = [...state, _AgentMessage(isAgent: true, text: '...typing', action: '_typing')];
 
     try {
-      // Directly call the booking API
-      final techs = ['Rajesh Kumar', 'Alice Rodriguez', 'Bob Chen', 'Diana Kim'];
-      final bays  = ['BAY-A', 'BAY-B', 'BAY-C'];
-      final techIdx = DateTime.now().millisecondsSinceEpoch % techs.length;
-      final bayIdx  = DateTime.now().millisecondsSinceEpoch % bays.length;
-
-      final booking = await _api.createBooking({
-        'vehicle_id': 'VEH001',
-        'service_component': 'brake_pads',
-        'slot_time': slotLabel,
-        'slot_time_iso': slot['slot_time_iso'] ?? DateTime.now().add(const Duration(days: 1)).toIso8601String(),
-        'technician_name': techs[techIdx],
-        'bay': bays[bayIdx],
-        'priority': 'P1',
-        'status': 'CONFIRMED',
-        'service_duration_hours': 1.5,
-        'source': 'app_chat',
-      });
+      // The calendar came from /api/chat, which says which job it is for.
+      final component = (slot['component'] as String?) ?? 'Full Service';
+      final booking = await _api.createBooking(
+        component: component,
+        slotTimeIso: slot['slot_time_iso'] as String,
+      );
 
       state = state.where((m) => m.action != '_typing').toList();
 
       state = [...state, _AgentMessage(
         isAgent: true,
         text: 'Great news! ✅ Your service appointment has been confirmed for $slotLabel. '
-            'You\'ll meet ${booking['technician_name'] ?? techs[techIdx]} at ${booking['bay'] ?? bays[bayIdx]}. '
+            'You\'ll meet ${booking['technician_name']} at ${booking['bay']}. '
             'We\'ll send you a reminder the day before.',
         action: 'BOOKING_CREATED',
         actionData: {'booking': booking},
@@ -161,23 +150,10 @@ class _ServiceChatNotifier extends StateNotifier<List<_AgentMessage>> {
 
     } catch (e) {
       state = state.where((m) => m.action != '_typing').toList();
-      // Even if API fails, show a local confirmed booking
-      final localBooking = {
-        'booking_id': 'BK-${DateTime.now().millisecondsSinceEpoch}',
-        'vehicle_id': 'VEH001',
-        'service_component': 'brake_pads',
-        'slot_time': slotLabel,
-        'slot_time_iso': slot['slot_time_iso'] ?? '',
-        'technician_name': 'Rajesh Kumar',
-        'bay': 'BAY-A',
-        'priority': 'P1',
-        'status': 'CONFIRMED',
-      };
+      // Never pretend: tell the owner the booking did not go through.
       state = [...state, _AgentMessage(
         isAgent: true,
-        text: '✅ Booking confirmed for $slotLabel! Our team will contact you to confirm.',
-        action: 'BOOKING_CREATED',
-        actionData: {'booking': localBooking},
+        text: 'Sorry, I couldn\'t book $slotLabel: $e Please pick another slot.',
       )];
     }
     _loading = false;

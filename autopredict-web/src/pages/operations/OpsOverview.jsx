@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import TechnicianWorkload from '../../components/charts/TechnicianWorkload';
@@ -9,7 +9,7 @@ import ConversationFunnel from '../../components/charts/ConversationFunnel';
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 export default function OpsOverview() {
-    const { statCards, loading, workloadData, fleetAnalytics, alerts, conversations } = useOutletContext();
+    const { statCards, workloadData, fleetAnalytics, alerts, conversations } = useOutletContext();
 
     return (
         <div>

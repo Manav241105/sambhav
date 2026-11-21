@@ -1,10 +1,9 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Gauge, Wrench, Clock, ChevronRight, MessageCircle } from 'lucide-react';
-import axios from 'axios';
+import api from '../lib/api';
 import TelematicsSparklines from './charts/TelematicsSparklines';
 
-const API = 'http://localhost:8001';
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 /* ── Priority colours ─────────────────────────────── */
@@ -80,6 +79,19 @@ const STAGE_CONFIG = {
 };
 
 export default function VehicleCard({ vehicle, onClick, selected = false, conversationStage }) {
+  /* ── 7-day sparkline history (hooks run before any early return) ── */
+  const vehicleId = vehicle?.vehicle_id;
+  const [sparkData, setSparkData] = useState([]);
+  useEffect(() => {
+    if (!vehicleId) return undefined;
+    let cancelled = false;
+    api
+      .get(`/api/vehicles/${vehicleId}/history?days=7`)
+      .then((r) => { if (!cancelled) setSparkData(r.data?.history || []); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [vehicleId]);
+
   if (!vehicle) return null;
 
   const pri = PRIORITY_CONFIG[vehicle.priority] || PRIORITY_CONFIG.P3;
@@ -95,17 +107,6 @@ export default function VehicleCard({ vehicle, onClick, selected = false, conver
     healthScore >= 0.75 ? '#22c55e' :
     healthScore >= 0.5  ? '#fbbf24' :
     healthScore >= 0.3  ? '#f97316' : '#ef4444';
-
-  /* ── Fetch 7-day sparkline history (lightweight, cached per mount) ── */
-  const [sparkData, setSparkData] = useState([]);
-  useEffect(() => {
-    let cancelled = false;
-    axios
-      .get(`${API}/api/vehicles/${vehicle.vehicle_id}/history?days=7`)
-      .then((r) => { if (!cancelled) setSparkData(r.data?.history || []); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [vehicle.vehicle_id]);
 
   /* ── Last contact timestamp ── */
   const lastContact = vehicle.updated_at || vehicle.telematics?.timestamp;

@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../core/providers/booking_provider.dart';
+import '../../core/services/api_service.dart';
 
 class BookingFlowScreen extends ConsumerStatefulWidget {
   const BookingFlowScreen({super.key});
@@ -14,11 +15,26 @@ class BookingFlowScreen extends ConsumerStatefulWidget {
 class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
   int _step = 0;
   String? _service;
-  String? _slot;
+  Map<String, dynamic>? _slot; // {slot_time, slot_time_iso}
   bool _loading = false;
 
-  static const _services = ['Brake Pads', 'Battery', 'Oil Change', 'Full Service', 'Diagnostics'];
-  static const _slots = ['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:30 PM'];
+  // Jobs the workshop offers (must match the API's service components).
+  static const _services = ['Brake Pads', 'Battery', 'Oil Change', 'Tires', 'Cooling System', 'Full Service'];
+
+  final _api = ApiService();
+  late final List<DateTime> _days = List.generate(7, (i) => DateTime.now().add(Duration(days: i + 1)));
+  int _dayIndex = 0;
+  Future<List<Map<String, dynamic>>>? _slotsFuture;
+
+  String _isoDate(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  void _loadSlots() {
+    _slot = null;
+    _slotsFuture = _api.getAvailableSlots(_isoDate(_days[_dayIndex]), component: _service!);
+  }
+
+  static const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   Future<void> _onNext() async {
     if (_step == 0) {
@@ -28,7 +44,10 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
         );
         return;
       }
-      setState(() => _step++);
+      setState(() {
+        _step++;
+        _loadSlots();
+      });
     } else if (_step == 1) {
       if (_slot == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -41,12 +60,10 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
       // Step 2 — confirm & call API
       setState(() => _loading = true);
       try {
-        await ref.read(bookingProvider.notifier).createBooking({
-          'service_component': _service!.toLowerCase().replaceAll(' ', '_'),
-          'slot_time': _slot!,
-          'technician_name': 'Rajesh Kumar',
-          'bay': 'Bay 3',
-        });
+        final booking = await ref.read(bookingProvider.notifier).createBooking(
+          component: _service!,
+          slotTimeIso: _slot!['slot_time_iso'] as String,
+        );
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -56,7 +73,7 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Booking confirmed! $_service at $_slot',
+                  'Booked: $_service, ${booking['slot_time'] ?? _slot!['slot_time']} with ${booking['technician_name'] ?? 'the workshop'}',
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -72,7 +89,7 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Booking failed: $e'),
+            content: Text(e.toString()),
             backgroundColor: kDanger,
             behavior: SnackBarBehavior.floating,
           ),
@@ -127,20 +144,64 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
 
           if (_step == 1) ...[
             Text('Pick a Time Slot', style: kTitle(color: colors.textPrimary)),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 44,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _days.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (_, i) {
+                  final d = _days[i];
+                  final selected = i == _dayIndex;
+                  return GestureDetector(
+                    onTap: () => setState(() { _dayIndex = i; _loadSlots(); }),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: selected ? kAccent : colors.surface,
+                        borderRadius: BorderRadius.circular(rMD),
+                      ),
+                      child: Text('${_weekdays[d.weekday - 1]} ${d.day}',
+                          style: kLabel(color: selected ? kDark : colors.textSecondary)),
+                    ),
+                  );
+                },
+              ),
+            ),
             const SizedBox(height: 16),
-            Wrap(spacing: 10, runSpacing: 10,
-              children: _slots.map((sl) => GestureDetector(
-                onTap: () => setState(() => _slot = sl),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: _slot == sl ? kAccent : colors.surface,
-                    borderRadius: BorderRadius.circular(rMD),
-                    boxShadow: [colors.cardShadowStyle],
-                  ),
-                  child: Text(sl, style: kLabel(color: _slot == sl ? kDark : colors.textSecondary)),
-                ),
-              )).toList(),
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: _slotsFuture,
+              builder: (context, snap) {
+                if (snap.connectionState != ConnectionState.done) {
+                  return const Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator());
+                }
+                if (snap.hasError) {
+                  return Text(snap.error.toString(), style: kBody(color: kDanger));
+                }
+                final slots = snap.data ?? [];
+                if (slots.isEmpty) {
+                  return Text('No free slots this day. Try another day.', style: kBody(color: colors.textSecondary));
+                }
+                return Wrap(spacing: 10, runSpacing: 10,
+                  children: slots.map((sl) {
+                    final selected = _slot?['slot_time_iso'] == sl['slot_time_iso'];
+                    return GestureDetector(
+                      onTap: () => setState(() => _slot = sl),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: selected ? kAccent : colors.surface,
+                          borderRadius: BorderRadius.circular(rMD),
+                          boxShadow: [colors.cardShadowStyle],
+                        ),
+                        child: Text(sl['slot_time'] as String,
+                            style: kLabel(color: selected ? kDark : colors.textSecondary)),
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
           ],
 
@@ -155,9 +216,9 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
               ),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 _InfoLine('Service', _service ?? '-'),
-                _InfoLine('Time', _slot ?? '-'),
-                _InfoLine('Bay', 'Bay 3 (auto-assigned)'),
-                _InfoLine('Technician', 'Rajesh Kumar'),
+                _InfoLine('Day', '${_weekdays[_days[_dayIndex].weekday - 1]} ${_days[_dayIndex].day}'),
+                _InfoLine('Time', (_slot?['slot_time'] as String?) ?? '-'),
+                _InfoLine('Technician & bay', 'Assigned by the workshop'),
               ]),
             ),
           ],

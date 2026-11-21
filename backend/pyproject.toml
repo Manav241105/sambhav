@@ -1,0 +1,37 @@
+[project]
+name = "autopredict-backend"
+version = "0.7.0"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 140
+target-version = "py311"
+# Phase 0 lints the new layers; legacy agent modules are linted as they are refactored.
+include = ["api/**/*.py", "core/**/*.py", "db/**/*.py", "domain/**/*.py", "services/**/*.py", "sim/**/*.py",
+           "tests/**/*.py", "webhook_server.py", "diagnosis_orchestrator.py", "migrations/env.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "S"]
+ignore = [
+    "S101",   # assert is fine in tests
+    "S311",   # random is used for simulation, not security
+    "S104",   # binding 0.0.0.0 is intended for the dev server/container
+    "B008",   # FastAPI Depends/Query in defaults
+    "E731",   # small lambdas in analytics formatting
+]
+
+[tool.ruff.lint.isort]
+# Same import order whether ruff runs from backend/ or from the repo root (pre-commit).
+known-first-party = ["api", "core", "db", "domain", "services", "sim", "tests", "config", "rule_engine",
+                     "manufacturing_agent", "scheduling_agent", "specialist_agents", "diagnosis_orchestrator",
+                     "event_system", "customer_interpreter", "communication_service", "webhook_server"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106"]

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, AlertOctagon, ShieldAlert, Info } from 'lucide-react';
 
@@ -18,6 +18,7 @@ const PRI_CONFIG = {
  *   alerts — array of { priority, vehicle_id, message, fired_at }
  */
 export default function AlertTimeline({ alerts = [] }) {
+  const [nowRef] = useState(() => Date.now());
   if (!alerts || alerts.length === 0) {
     return (
       <div className="h-32 flex items-center justify-center">
@@ -27,7 +28,7 @@ export default function AlertTimeline({ alerts = [] }) {
   }
 
   /* Filter to last 24h and sort by time */
-  const now = Date.now();
+  const now = nowRef;
   const h24 = 24 * 60 * 60 * 1000;
   const recent = alerts
     .filter((a) => {

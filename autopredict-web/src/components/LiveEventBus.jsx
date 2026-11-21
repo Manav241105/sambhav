@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wifi, WifiOff, X, Zap, AlertTriangle, Car, CalendarDays, MessageSquare, Brain } from 'lucide-react';
-import useWebSocketData from '../hooks/useWebSocketData';
-import { useWebSocketContext } from '../contexts/WebSocketContext';
+import { useWebSocketContext } from '../contexts/useWebSocketContext';
 
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 const TOAST_DURATION = 5000;
@@ -35,15 +34,7 @@ export default function LiveEventBus({
     onVehicleUpdated,
     onAnyEvent,
 }) {
-    const { connected } = useWebSocketContext();
-
-    // Type-specific subscriptions — each returns { latestEvent }
-    const diagnosis = useWebSocketData('DIAGNOSIS_UPDATED');
-    const booking = useWebSocketData('BOOKING_CREATED');
-    const alert = useWebSocketData('ALERT_FIRED');
-    const conversation = useWebSocketData('CONVERSATION_TURN');
-    const vehicle = useWebSocketData('VEHICLE_UPDATED');
-    const workflow = useWebSocketData('WORKFLOW_COMPLETED');
+    const { connected, subscribe } = useWebSocketContext();
 
     // Toast stack
     const [toasts, setToasts] = useState([]);
@@ -64,59 +55,39 @@ export default function LiveEventBus({
         }, TOAST_DURATION);
     }, []);
 
-    // ── Dispatch per-type callbacks + toast ──────────────────
-
-    // DIAGNOSIS_UPDATED
+    // Latest callbacks, so subscriptions don't need to be recreated when props change.
+    const handlers = useRef({});
     useEffect(() => {
-        if (!diagnosis.latestEvent) return;
-        pushToast(diagnosis.latestEvent);
-        onDiagnosisUpdated?.(diagnosis.latestEvent);
-        onAnyEvent?.(diagnosis.latestEvent);
-    }, [diagnosis.latestEvent]); // eslint-disable-line react-hooks/exhaustive-deps
+        handlers.current = { onDiagnosisUpdated, onBookingCreated, onAlertFired, onConversationTurn, onVehicleUpdated, onAnyEvent };
+    });
 
-    // BOOKING_CREATED
+    const bannerTimer = useRef(null);
     useEffect(() => {
-        if (!booking.latestEvent) return;
-        pushToast(booking.latestEvent);
-        onBookingCreated?.(booking.latestEvent);
-        onAnyEvent?.(booking.latestEvent);
-    }, [booking.latestEvent]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    // ALERT_FIRED — also show alert banner
-    useEffect(() => {
-        if (!alert.latestEvent) return;
-        pushToast(alert.latestEvent);
-        onAlertFired?.(alert.latestEvent);
-        onAnyEvent?.(alert.latestEvent);
-
-        // Show banner
-        setAlertBanner(alert.latestEvent);
-        const timer = setTimeout(() => setAlertBanner(null), ALERT_DURATION);
-        return () => clearTimeout(timer);
-    }, [alert.latestEvent]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    // CONVERSATION_TURN
-    useEffect(() => {
-        if (!conversation.latestEvent) return;
-        pushToast(conversation.latestEvent);
-        onConversationTurn?.(conversation.latestEvent);
-        onAnyEvent?.(conversation.latestEvent);
-    }, [conversation.latestEvent]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    // VEHICLE_UPDATED
-    useEffect(() => {
-        if (!vehicle.latestEvent) return;
-        pushToast(vehicle.latestEvent);
-        onVehicleUpdated?.(vehicle.latestEvent);
-        onAnyEvent?.(vehicle.latestEvent);
-    }, [vehicle.latestEvent]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    // WORKFLOW_COMPLETED
-    useEffect(() => {
-        if (!workflow.latestEvent) return;
-        pushToast(workflow.latestEvent);
-        onAnyEvent?.(workflow.latestEvent);
-    }, [workflow.latestEvent]); // eslint-disable-line react-hooks/exhaustive-deps
+        const perType = {
+            DIAGNOSIS_UPDATED: 'onDiagnosisUpdated',
+            BOOKING_CREATED: 'onBookingCreated',
+            ALERT_FIRED: 'onAlertFired',
+            CONVERSATION_TURN: 'onConversationTurn',
+            VEHICLE_UPDATED: 'onVehicleUpdated',
+            WORKFLOW_COMPLETED: null,
+        };
+        const unsubs = Object.entries(perType).map(([type, cbName]) =>
+            subscribe(type, (event) => {
+                pushToast(event);
+                if (cbName) handlers.current[cbName]?.(event);
+                handlers.current.onAnyEvent?.(event);
+                if (type === 'ALERT_FIRED') {
+                    setAlertBanner(event);
+                    clearTimeout(bannerTimer.current);
+                    bannerTimer.current = setTimeout(() => setAlertBanner(null), ALERT_DURATION);
+                }
+            }),
+        );
+        return () => {
+            unsubs.forEach((u) => u());
+            clearTimeout(bannerTimer.current);
+        };
+    }, [subscribe, pushToast]);
 
     const dismiss = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
 

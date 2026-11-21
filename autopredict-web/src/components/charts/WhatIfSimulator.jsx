@@ -16,7 +16,7 @@ const spring = { type: 'spring', stiffness: 100, damping: 10 };
  * @param {{ baseline: { bookings_per_week: number, avg_service_hours: number, acceptance_pct: number } }} props
  */
 export default function WhatIfSimulator({
-    baseline = { bookings_per_week: 48, avg_service_hours: 3.2, acceptance_pct: 68 },
+    baseline, // required: { bookings_per_week, avg_service_hours, acceptance_pct } from real data
 }) {
     const [extraTechs, setExtraTechs] = useState(0);
     const [extraBays, setExtraBays] = useState(0);

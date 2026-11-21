@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'core/services/session.dart';
 import 'features/splash/splash_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/auth/login_screen.dart';
@@ -16,8 +17,17 @@ import 'features/notifications/notifications_screen.dart';
 import 'features/profile/profile_screen.dart';
 import 'features/service_chat/service_chat_screen.dart';
 
+// Screens anyone can open; everything else needs a signed-in owner.
+const _publicPaths = {'/', '/onboarding', '/login'};
+
 final _router = GoRouter(
   initialLocation: '/',
+  redirect: (context, state) {
+    final path = state.matchedLocation;
+    if (!Session.isSignedIn && !_publicPaths.contains(path)) return '/login';
+    if (Session.isSignedIn && path == '/login') return '/home';
+    return null;
+  },
   routes: [
     GoRoute(path: '/',         builder: (_, __) => const SplashScreen()),
     GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
@@ -33,8 +43,9 @@ final _router = GoRouter(
   ],
 );
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Session.load();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(const ProviderScope(child: AutoPredictApp()));
 }

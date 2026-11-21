@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatINR, formatINRCompact } from '../../lib/format';
 import { motion } from 'framer-motion';
 import { ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from 'recharts';
 
@@ -8,7 +9,7 @@ const tooltipStyle = { backgroundColor: '#1f2937', border: '1px solid #374151', 
 /**
  * Revenue forecast: 6-month historical (solid area) + 3-month projected (dashed line).
  *
- * @param {{ all: Array<{month:string, revenue_usd:number, type:'actual'|'forecast'}> }} props
+ * @param {{ all: Array<{month:string, revenue_inr:number, type:'actual'|'forecast'}> }} props
  */
 export default function RevenueForecast({ all = [] }) {
     if (!all.length) {
@@ -22,8 +23,8 @@ export default function RevenueForecast({ all = [] }) {
     // Split into actual vs forecast for separate series
     const data = all.map((d) => ({
         month: d.month,
-        actual: d.type === 'actual' ? d.revenue_usd : null,
-        forecast: d.type === 'forecast' ? d.revenue_usd : null,
+        actual: d.type === 'actual' ? d.revenue_inr : null,
+        forecast: d.type === 'forecast' ? d.revenue_inr : null,
         // Connect the junction point
         ...(d.type === 'forecast' ? {} : {}),
     }));
@@ -34,7 +35,7 @@ export default function RevenueForecast({ all = [] }) {
         data[lastActualIdx].forecast = data[lastActualIdx].actual;
     }
 
-    const fmt = (v) => `$${(v / 1000).toFixed(0)}k`;
+    const fmt = (v) => formatINRCompact(v);
     const dividerMonth = all.find((d) => d.type === 'forecast')?.month;
 
     return (
@@ -59,7 +60,7 @@ export default function RevenueForecast({ all = [] }) {
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(156,163,175,0.15)" />
                     <XAxis dataKey="month" tick={{ fill: '#9ca3af', fontSize: 11, fontWeight: 500 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={fmt} />
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v) => (v != null ? `$${v.toLocaleString()}` : '—')} />
+                    <Tooltip contentStyle={tooltipStyle} formatter={(v) => formatINR(v)} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
                     {dividerMonth && (
                         <ReferenceLine x={dividerMonth} stroke="#9ca3af" strokeDasharray="4 4" label={{ value: 'Forecast →', position: 'top', fill: '#9ca3af', fontSize: 10 }} />

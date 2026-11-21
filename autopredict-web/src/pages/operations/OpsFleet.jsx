@@ -1,8 +1,9 @@
-﻿import React from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import { X, Car, Gauge, Activity, Calendar, RefreshCw, CalendarPlus } from 'lucide-react';
 import VehicleCard from '../../components/VehicleCard';
+import { formatINR } from '../../lib/format';
 import TelematicsGauge from '../../components/TelematicsGauge';
 import SubsystemRadar from '../../components/SubsystemRadar';
 import DtcPanel from '../../components/DtcPanel';
@@ -82,7 +83,7 @@ export default function OpsFleet() {
     const {
         vehicles, selectedVehicle, setSelectedVehicle,
         manufacturing, mfgLoading, fleetHealthPie, telematicsTrend,
-        vehicleHistory, historyLoading, diagnosing, triggerDiagnosis,
+        vehicleHistory, historyLoading, serviceHistory, diagnosing, triggerDiagnosis,
         conversations, bookings,
     } = useOutletContext();
 
@@ -409,15 +410,15 @@ export default function OpsFleet() {
                                     </div>
 
                                     {/* ─ Maintenance History ─ */}
-                                    {selectedVehicle.maintenance_history?.length > 0 && (
+                                    {serviceHistory?.length > 0 && (
                                         <div className="px-5 py-4 border-t border-gray-100 dark:border-gray-800">
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-3">
                                                 Maintenance History
                                             </p>
                                             <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                                                {selectedVehicle.maintenance_history.map((entry, i) => (
+                                                {serviceHistory.map((entry, i) => (
                                                     <motion.div
-                                                        key={entry.service_id || i}
+                                                        key={entry.id || i}
                                                         initial={{ opacity: 0, x: -8 }}
                                                         animate={{ opacity: 1, x: 0 }}
                                                         transition={{ ...spring, delay: i * 0.04 }}
@@ -429,11 +430,11 @@ export default function OpsFleet() {
                                                                 {entry.service_type}
                                                             </p>
                                                             <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                                                                {entry.service_date} · ${entry.cost_usd} · {entry.mileage_km?.toLocaleString()} km
+                                                                {entry.service_date?.slice(0, 10)} · {formatINR(entry.total_cost_inr)} · {entry.odometer_km?.toLocaleString()} km
                                                             </p>
-                                                            {entry.parts_replaced?.length > 0 && (
+                                                            {entry.items?.some((it) => it.action === 'replaced') && (
                                                                 <div className="flex gap-1 mt-1 flex-wrap">
-                                                                    {entry.parts_replaced.map((p, j) => (
+                                                                    {entry.items.filter((it) => it.action === 'replaced').map((it) => it.part.replace(/_/g, ' ')).map((p, j) => (
                                                                         <span key={j} className="px-1.5 py-0.5 rounded-full text-[8px] font-medium bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400">
                                                                             {p}
                                                                         </span>

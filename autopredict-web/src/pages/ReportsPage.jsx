@@ -1,13 +1,12 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../lib/api';
 import {
     FileText, Download, BarChart3, Truck, MessageSquare,
     Calendar, DollarSign, RefreshCw, CheckCircle, AlertTriangle,
 } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 
-const API = 'http://localhost:8001';
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 const REPORT_TYPES = [
@@ -91,9 +90,9 @@ export default function ReportsPage() {
     const fetchAll = useCallback(async () => {
         try {
             const [vRes, aRes, cRes] = await Promise.all([
-                axios.get(`${API}/api/vehicles`),
-                axios.get(`${API}/api/analytics/monthly`),
-                axios.get(`${API}/api/conversations`),
+                api.get(`/api/vehicles`),
+                api.get(`/api/analytics/monthly`),
+                api.get(`/api/conversations`),
             ]);
             setData({
                 vehicles: Array.isArray(vRes.data) ? vRes.data : Object.values(vRes.data),
@@ -137,7 +136,7 @@ export default function ReportsPage() {
             const rows = data.analytics.map((m) => ({
                 month: m.month,
                 bookings: m.bookings,
-                cost_avoidance_usd: m.cost_avoidance_usd,
+                cost_avoidance_inr: m.cost_avoidance_inr,
                 vehicles_serviced: m.vehicles_serviced,
                 acceptance_rate: m.acceptance_rate,
                 conversion_rate: m.conversion_rate,

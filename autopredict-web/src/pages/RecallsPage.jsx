@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
+import api from '../lib/api';
 import {
     RotateCcw, AlertTriangle, CheckCircle, Clock, ChevronRight,
     Search, Filter, X, Truck, Calendar, AlertOctagon, ShieldCheck,
@@ -8,7 +8,6 @@ import {
 import DashboardLayout from '../components/DashboardLayout';
 import LiveEventBus from '../components/LiveEventBus';
 
-const API = 'http://localhost:8001';
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 const STATUS_CONFIG = {
@@ -29,8 +28,8 @@ export default function RecallsPage() {
     const fetchAll = useCallback(async () => {
         try {
             const [vRes, mRes] = await Promise.all([
-                axios.get(`${API}/api/vehicles`),
-                axios.get(`${API}/api/manufacturing/summary`),
+                api.get(`/api/vehicles`),
+                api.get(`/api/manufacturing/summary`),
             ]);
             const vs = Array.isArray(vRes.data) ? vRes.data : Object.values(vRes.data);
             setVehicles(vs);

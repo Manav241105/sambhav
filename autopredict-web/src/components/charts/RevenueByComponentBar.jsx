@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatINR, formatINRCompact } from '../../lib/format';
 import { motion } from 'framer-motion';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
@@ -8,7 +9,7 @@ const tooltipStyle = { backgroundColor: '#1f2937', border: '1px solid #374151', 
 /**
  * Horizontal bar chart — revenue breakdown by service component.
  *
- * @param {{ components: Array<{component:string, revenue_usd:number}> }} props
+ * @param {{ components: Array<{component:string, revenue_inr:number}> }} props
  */
 export default function RevenueByComponentBar({ components = [] }) {
     if (!components.length) {
@@ -19,7 +20,7 @@ export default function RevenueByComponentBar({ components = [] }) {
         );
     }
 
-    const fmt = (v) => `$${(v / 1000).toFixed(1)}k`;
+    const fmt = (v) => formatINRCompact(v);
 
     return (
         <motion.div
@@ -36,8 +37,8 @@ export default function RevenueByComponentBar({ components = [] }) {
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(156,163,175,0.15)" horizontal={false} />
                     <XAxis type="number" tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={fmt} />
                     <YAxis type="category" dataKey="component" tick={{ fill: '#9ca3af', fontSize: 11, fontWeight: 500 }} axisLine={false} tickLine={false} width={110} />
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v) => `$${v.toLocaleString()}`} />
-                    <Bar dataKey="revenue_usd" name="Revenue" fill="#6366f1" radius={[0, 8, 8, 0]} />
+                    <Tooltip contentStyle={tooltipStyle} formatter={(v) => formatINR(v)} />
+                    <Bar dataKey="revenue_inr" name="Revenue" fill="#6366f1" radius={[0, 8, 8, 0]} />
                 </BarChart>
             </ResponsiveContainer>
         </motion.div>

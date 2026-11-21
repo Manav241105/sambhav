@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatINR, formatINRCompact } from '../../lib/format';
 import { motion } from 'framer-motion';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
@@ -66,8 +67,8 @@ export default function ROIDashboard({ roi = [] }) {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(156,163,175,0.15)" />
                     <XAxis dataKey="month" tick={{ fill: '#9ca3af', fontSize: 11, fontWeight: 500 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v) => `$${v.toLocaleString()}`} />
+                    <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => formatINRCompact(v)} />
+                    <Tooltip contentStyle={tooltipStyle} formatter={(v) => formatINR(v)} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
                     <Area type="monotone" dataKey="cost_avoidance" name="Cost Avoided" stroke="#22c55e" strokeWidth={2.5} fill="url(#gradCostAv)" dot={{ r: 3, fill: '#22c55e' }} />
                     <Area type="monotone" dataKey="operating_cost" name="Operating Cost" stroke="#ef4444" strokeWidth={2} fill="url(#gradOpex)" dot={{ r: 3, fill: '#ef4444' }} />

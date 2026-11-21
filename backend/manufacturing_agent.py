@@ -82,13 +82,13 @@ class ManufacturingAgent:
 
     # ── Public API ────────────────────────────────────────────────────────────
 
-    def check_vehicle(self, vehicle_id: str) -> Dict:
+    def check_vehicle(self, vehicle_id: str, make: Optional[str] = None) -> Dict:
         """
-        Run a full manufacturing check for *vehicle_id*.
+        Run a full manufacturing check for *vehicle_id* (of the given *make*).
         Returns a combined dict of DTC codes and recall matches.
         """
         dtc_codes = self.get_dtc_codes(vehicle_id)
-        recalls = self.get_recalls(vehicle_id)
+        recalls = self.get_recalls(vehicle_id, make)
 
         has_critical = any(d["severity"] == "critical" for d in dtc_codes) or len(recalls) > 0
 
@@ -133,19 +133,17 @@ class ManufacturingAgent:
 
     # ── NHTSA recall check (mock) ────────────────────────────────────────────
 
-    def get_recalls(self, vehicle_id: str) -> List[Dict]:
+    def get_recalls(self, vehicle_id: str, make: Optional[str] = None) -> List[Dict]:
         """
-        Check open recalls for the vehicle's make.
-        Looks up the vehicle in app_state (or falls back to data_generator)
-        to determine the make, then matches against the recall catalogue.
+        Match the vehicle's make against the (mock) recall catalogue.
+        The caller supplies the make; without it there is nothing to match.
         """
-        make = self._resolve_make(vehicle_id)
         if not make:
             return []
 
         matches = []
         for recall in _RECALL_CATALOGUE:
-            if make in recall["make_match"]:
+            if any(m.lower() in make.lower() for m in recall["make_match"]):
                 matches.append({
                     "nhtsa_campaign": recall["nhtsa_campaign"],
                     "component": recall["component"],
@@ -163,22 +161,3 @@ class ManufacturingAgent:
         """Derive a deterministic seed from the vehicle ID."""
         num_part = "".join(c for c in vehicle_id if c.isdigit()) or "0"
         return int(num_part) * 7919  # prime multiplier
-
-    @staticmethod
-    def _resolve_make(vehicle_id: str) -> Optional[str]:
-        """Try to get the vehicle make from app_state, else from data_generator."""
-        try:
-            from app_state import app_state
-            v = app_state.get_vehicle(vehicle_id)
-            if v and v.get("make"):
-                return v["make"]
-        except Exception:
-            pass
-
-        # Fallback: use data_generator
-        try:
-            from data_generator import VehicleDataGenerator
-            master = VehicleDataGenerator().generate_vehicle_master(vehicle_id)
-            return master.get("make")
-        except Exception:
-            return None

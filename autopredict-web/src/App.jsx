@@ -1,41 +1,43 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { WebSocketProvider } from './contexts/WebSocketContext';
-import HeroSection from './components/HeroSection';
-import Login from './pages/Login';
+const HeroSection = lazy(() => import('./components/HeroSection'));
+const Login = lazy(() => import('./pages/Login'));
 import ProtectedRoute from './components/ProtectedRoute';
 
 /* ── Shared pages ─────────────────────────────────── */
-import ConversationsPage from './pages/ConversationsPage';
-import RecallsPage from './pages/RecallsPage';
-import ReportsPage from './pages/ReportsPage';
-import SettingsPage from './pages/SettingsPage';
+const ConversationsPage = lazy(() => import('./pages/ConversationsPage'));
+const RecallsPage = lazy(() => import('./pages/RecallsPage'));
+const ReportsPage = lazy(() => import('./pages/ReportsPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
 /* ── Operations Dashboard (nested) ───────────────── */
-import OperationsLayout from './pages/operations/OperationsLayout';
-import OpsOverview from './pages/operations/OpsOverview';
-import OpsFleet from './pages/operations/OpsFleet';
-import OpsCalendar from './pages/operations/OpsCalendar';
-import OpsConversations from './pages/operations/OpsConversations';
-import OpsWarnings from './pages/operations/OpsWarnings';
+const OperationsLayout = lazy(() => import('./pages/operations/OperationsLayout'));
+const OpsOverview = lazy(() => import('./pages/operations/OpsOverview'));
+const OpsFleet = lazy(() => import('./pages/operations/OpsFleet'));
+const OpsCalendar = lazy(() => import('./pages/operations/OpsCalendar'));
+const OpsConversations = lazy(() => import('./pages/operations/OpsConversations'));
+const OpsWarnings = lazy(() => import('./pages/operations/OpsWarnings'));
 
 /* ── Manager Dashboard (nested) ──────────────────── */
-import ManagerLayout from './pages/manager/ManagerLayout';
-import ManagerOverview from './pages/manager/ManagerOverview';
-import ManagerEscalations from './pages/manager/ManagerEscalations';
-import ManagerRevenue from './pages/manager/ManagerRevenue';
-import ManagerWorkload from './pages/manager/ManagerWorkload';
+const ManagerLayout = lazy(() => import('./pages/manager/ManagerLayout'));
+const ManagerOverview = lazy(() => import('./pages/manager/ManagerOverview'));
+const ManagerEscalations = lazy(() => import('./pages/manager/ManagerEscalations'));
+const ManagerRevenue = lazy(() => import('./pages/manager/ManagerRevenue'));
+const ManagerWorkload = lazy(() => import('./pages/manager/ManagerWorkload'));
 
 /* ── Executive Dashboard (nested) ────────────────── */
-import ExecutiveLayout from './pages/executive/ExecutiveLayout';
-import ExecOverview from './pages/executive/ExecOverview';
-import ExecFleetHealth from './pages/executive/ExecFleetHealth';
-import ExecTrends from './pages/executive/ExecTrends';
-import ExecRecalls from './pages/executive/ExecRecalls';
+const ExecutiveLayout = lazy(() => import('./pages/executive/ExecutiveLayout'));
+const ExecOverview = lazy(() => import('./pages/executive/ExecOverview'));
+const ExecFleetHealth = lazy(() => import('./pages/executive/ExecFleetHealth'));
+const ExecTrends = lazy(() => import('./pages/executive/ExecTrends'));
+const ExecRecalls = lazy(() => import('./pages/executive/ExecRecalls'));
 
 function App() {
   return (
     <BrowserRouter>
       <WebSocketProvider>
+        <Suspense fallback={<div className="p-8 text-sm text-gray-400">Loading…</div>}>
         <Routes>
           {/* ── Public ────────────────────────────────── */}
           <Route path="/" element={<HeroSection />} />
@@ -94,6 +96,7 @@ function App() {
             </div>
           } />
         </Routes>
+        </Suspense>
       </WebSocketProvider>
     </BrowserRouter>
   );

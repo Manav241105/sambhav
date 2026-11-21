@@ -169,8 +169,8 @@ class ProfileScreen extends ConsumerWidget {
                     trailing: Switch(
                       value: isDark,
                       activeColor: kAccent,
-                      onChanged: (v) => ref.read(themeModeProvider.notifier).state =
-                          v ? ThemeMode.dark : ThemeMode.light,
+                      // setMode also persists the choice.
+                      onChanged: (v) => ref.read(themeModeProvider.notifier).setMode(v ? ThemeMode.dark : ThemeMode.light),
                     ),
                     colors: colors,
                   ),

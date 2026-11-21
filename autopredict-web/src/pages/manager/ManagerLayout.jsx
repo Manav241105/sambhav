@@ -1,12 +1,10 @@
-﻿import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../lib/api';
 import { AlertTriangle, ShieldCheck, Users, Wrench } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import LiveEventBus from '../../components/LiveEventBus';
 
-const API = 'http://localhost:8001';
-export const tooltipStyle = { backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '12px', fontSize: 12, color: '#fff' };
 
 export default function ManagerLayout() {
     const [summary, setSummary] = useState(null);
@@ -36,24 +34,24 @@ export default function ManagerLayout() {
                    agentRes, convoVolRes, funnelRes, escHeatRes, escAnalRes, escTrendRes,
                    revRes, revCompRes, revForecastRes, bayRes, svcDurRes, velRes] = await Promise.all([
                 // Original fetches
-                axios.get(`${API}/api/dashboard/summary`),
-                axios.get(`${API}/api/bookings/today`),
-                axios.get(`${API}/api/bookings`),
-                axios.get(`${API}/api/conversations`),
-                axios.get(`${API}/api/manufacturing/summary`),
+                api.get(`/api/dashboard/summary`),
+                api.get(`/api/bookings/today`),
+                api.get(`/api/bookings`),
+                api.get(`/api/conversations`),
+                api.get(`/api/manufacturing/summary`),
                 // Phase 3 fetches
-                axios.get(`${API}/api/analytics/agent-performance`).catch(() => ({ data: { agents: [] } })),
-                axios.get(`${API}/api/analytics/conversation-volume`).catch(() => ({ data: { days: [] } })),
-                axios.get(`${API}/api/analytics/booking-funnel`).catch(() => ({ data: { funnel: [] } })),
-                axios.get(`${API}/api/analytics/escalation-heatmap`).catch(() => ({ data: { heatmap: [], days: [], hours: [] } })),
-                axios.get(`${API}/api/analytics/escalations`).catch(() => ({ data: { reasons_breakdown: [], sla_breach_risk: [], sla_breach_count: 0 } })),
-                axios.get(`${API}/api/analytics/escalation-trend`).catch(() => ({ data: { weeks: [] } })),
-                axios.get(`${API}/api/analytics/revenue`).catch(() => ({ data: { months: [] } })),
-                axios.get(`${API}/api/analytics/revenue-by-component`).catch(() => ({ data: { components: [] } })),
-                axios.get(`${API}/api/analytics/revenue-forecast`).catch(() => ({ data: { all: [] } })),
-                axios.get(`${API}/api/analytics/bay-occupancy`).catch(() => ({ data: { slots: [], bays: [] } })),
-                axios.get(`${API}/api/analytics/service-duration`).catch(() => ({ data: { components: [] } })),
-                axios.get(`${API}/api/analytics/booking-velocity`).catch(() => ({ data: null })),
+                api.get(`/api/analytics/agent-performance`).catch(() => ({ data: { agents: [] } })),
+                api.get(`/api/analytics/conversation-volume`).catch(() => ({ data: { days: [] } })),
+                api.get(`/api/analytics/booking-funnel`).catch(() => ({ data: { funnel: [] } })),
+                api.get(`/api/analytics/escalation-heatmap`).catch(() => ({ data: { heatmap: [], days: [], hours: [] } })),
+                api.get(`/api/analytics/escalations`).catch(() => ({ data: { reasons_breakdown: [], sla_breach_risk: [], sla_breach_count: 0 } })),
+                api.get(`/api/analytics/escalation-trend`).catch(() => ({ data: { weeks: [] } })),
+                api.get(`/api/analytics/revenue`).catch(() => ({ data: { months: [] } })),
+                api.get(`/api/analytics/revenue-by-component`).catch(() => ({ data: { components: [] } })),
+                api.get(`/api/analytics/revenue-forecast`).catch(() => ({ data: { all: [] } })),
+                api.get(`/api/analytics/bay-occupancy`).catch(() => ({ data: { slots: [], bays: [] } })),
+                api.get(`/api/analytics/service-duration`).catch(() => ({ data: { components: [] } })),
+                api.get(`/api/analytics/booking-velocity`).catch(() => ({ data: null })),
             ]);
 
             // Original state

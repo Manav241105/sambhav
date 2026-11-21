@@ -1,48 +1,20 @@
-﻿import React, { useMemo, useRef, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import axios from 'axios';
+import api, { errorMessage } from '../lib/api';
 import {
   X, CheckCircle2, Clock, Wrench, Trash2,
   AlertTriangle, Save, LayoutGrid, Activity
 } from 'lucide-react';
 
-const API = 'http://localhost:8001';
 const spring = { type: 'spring', stiffness: 220, damping: 20 };
 
-/* ── 10 Bays ─────────────────────────────────────────── */
-const ALL_BAYS = [
-  { id: 'BAY-1', label: 'Bay 1', spec: 'General Service' },
-  { id: 'BAY-2', label: 'Bay 2', spec: 'Engine & Cooling' },
-  { id: 'BAY-3', label: 'Bay 3', spec: 'Brakes & Tires' },
-  { id: 'BAY-4', label: 'Bay 4', spec: 'Electrical / Battery' },
-  { id: 'BAY-5', label: 'Bay 5', spec: 'Transmission' },
-  { id: 'BAY-6', label: 'Bay 6', spec: 'Body & Detailing' },
-  { id: 'BAY-7', label: 'Bay 7', spec: 'Express Service' },
-  { id: 'BAY-8', label: 'Bay 8', spec: 'Diagnostics' },
-  { id: 'BAY-9', label: 'Bay 9', spec: 'Alignment & Tyres' },
-  { id: 'BAY-10', label: 'Bay 10', spec: 'Heavy Repairs' },
-];
-
-const TECHNICIANS = [
-  { id: 'T001', name: 'Rajesh Kumar', spec: 'Brake / Tires' },
-  { id: 'T002', name: 'Amit Sharma', spec: 'Battery / Electrical' },
-  { id: 'T003', name: 'Priya Nair', spec: 'Cooling / Engine' },
-  { id: 'T004', name: 'Suresh Patel', spec: 'Transmission / Full' },
-  { id: 'T005', name: 'Deepak Mehta', spec: 'Brake / Battery' },
-  { id: 'T006', name: 'Kavya Rao', spec: 'Diagnostics' },
-  { id: 'T007', name: 'Arjun Singh', spec: 'Body & Detailing' },
-  { id: 'T008', name: 'Meena Iyer', spec: 'Alignment / Tyres' },
-];
-
-const SERVICE_TYPES = [
-  'Brake Pads', 'Battery', 'Cooling System', 'Engine',
-  'Transmission', 'Tires', 'Oil Change', 'Full Service',
-  'Diagnostics', 'Alignment', 'Body Work', 'Express Check',
-];
+/* ── Workshop resources (bays, technicians, job types) come from GET /api/resources ── */
+const ResourcesContext = createContext({ bays: [], technicians: [], components: [] });
+const useResources = () => useContext(ResourcesContext);
 
 const PRIORITIES = ['P0', 'P1', 'P2', 'P3'];
 const STATUS_STEPS = ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'];
@@ -68,6 +40,7 @@ const labelCls = 'block text-[10px] font-semibold uppercase tracking-wider text-
    Bay Status Bar — quick glance at utilisation per bay
 ────────────────────────────────────────────────────────── */
 function BayStatusBar({ bookings, selectedBay, onSelectBay }) {
+  const { bays: ALL_BAYS } = useResources();
   const today = new Date().toISOString().slice(0, 10);
 
   return (
@@ -113,11 +86,12 @@ function BayStatusBar({ bookings, selectedBay, onSelectBay }) {
    New Booking Modal
 ────────────────────────────────────────────────────────── */
 function BookingModal({ slotInfo, vehicles = [], defaultBay = null, onClose, onCreated }) {
+  const { bays: ALL_BAYS, technicians: TECHNICIANS, components: SERVICE_TYPES } = useResources();
   const [form, setForm] = useState({
     vehicle_id: '',
     service_component: 'Oil Change',
-    technician_name: TECHNICIANS[0].name,
-    bay: defaultBay || ALL_BAYS[0].id,
+    technician_name: TECHNICIANS[0]?.name || '',
+    bay: defaultBay || ALL_BAYS[0]?.id || '',
     priority: 'P3',
     service_duration_hours: 1.5,
   });
@@ -130,7 +104,7 @@ function BookingModal({ slotInfo, vehicles = [], defaultBay = null, onClose, onC
     if (!form.vehicle_id) { setError('Please select a vehicle'); return; }
     setSaving(true); setError('');
     try {
-      await axios.post(`${API}/api/bookings`, {
+      await api.post(`/api/bookings`, {
         ...form,
         slot_time_iso: slotInfo.startStr,
         status: 'CONFIRMED',
@@ -138,7 +112,7 @@ function BookingModal({ slotInfo, vehicles = [], defaultBay = null, onClose, onC
       onCreated?.();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.detail || `Error: ${err.message}`);
+      setError(errorMessage(err, `Error: ${err.message}`));
     } finally { setSaving(false); }
   }
 
@@ -249,10 +223,11 @@ function BookingModal({ slotInfo, vehicles = [], defaultBay = null, onClose, onC
    Event Drawer — full edit
 ────────────────────────────────────────────────────────── */
 function EventDrawer({ booking, onClose, onRefresh }) {
+  const { bays: ALL_BAYS, technicians: TECHNICIANS, components: SERVICE_TYPES } = useResources();
   const [form, setForm] = useState({
-    service_component: booking.service_component || 'General',
-    technician_name: booking.technician_name || TECHNICIANS[0].name,
-    bay: booking.bay || ALL_BAYS[0].id,
+    service_component: booking.service_component || 'Full Service',
+    technician_name: booking.technician_name || TECHNICIANS[0]?.name || '',
+    bay: booking.bay || ALL_BAYS[0]?.id || '',
     priority: booking.priority || 'P3',
     status: booking.status || 'CONFIRMED',
     service_duration_hours: booking.service_duration_hours || 1.5,
@@ -269,7 +244,7 @@ function EventDrawer({ booking, onClose, onRefresh }) {
   async function saveChanges() {
     setSaving(true); setError('');
     try {
-      await axios.patch(`${API}/api/bookings/${booking.booking_id}`, {
+      await api.patch(`/api/bookings/${booking.booking_id}`, {
         ...form,
         service_duration_hours: parseFloat(form.service_duration_hours),
         slot_time_iso: form.slot_time_iso + ':00',
@@ -277,7 +252,7 @@ function EventDrawer({ booking, onClose, onRefresh }) {
       onRefresh?.();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.detail || `Error: ${err.message}`);
+      setError(errorMessage(err, `Error: ${err.message}`));
     } finally { setSaving(false); }
   }
 
@@ -285,11 +260,11 @@ function EventDrawer({ booking, onClose, onRefresh }) {
     if (!window.confirm('Cancel this booking?')) return;
     setDeleting(true);
     try {
-      await axios.delete(`${API}/api/bookings/${booking.booking_id}`);
+      await api.delete(`/api/bookings/${booking.booking_id}`);
       onRefresh?.();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.detail || `Error: ${err.message}`);
+      setError(errorMessage(err, `Error: ${err.message}`));
     } finally { setDeleting(false); }
   }
 
@@ -409,6 +384,14 @@ function EventDrawer({ booking, onClose, onRefresh }) {
 ────────────────────────────────────────────────────────── */
 export default function BayCalendar({ bookings = [], vehicles = [], onRefresh }) {
   const calRef = useRef(null);
+  const [resources, setResources] = useState({ bays: [], technicians: [], components: [] });
+  const [resourceError, setResourceError] = useState('');
+  useEffect(() => {
+    api.get('/api/resources')
+      .then(({ data }) => setResources(data))
+      .catch((err) => setResourceError(errorMessage(err, 'Could not load bays and technicians')));
+  }, []);
+  const ALL_BAYS = resources.bays;
   const [selectedBay, setSelectedBay] = useState('BAY-1');  // default first bay
   const [modalSlot, setModalSlot] = useState(null);
   const [drawerBooking, setDrawerBooking] = useState(null);
@@ -442,7 +425,7 @@ export default function BayCalendar({ bookings = [], vehicles = [], onRefresh })
 
   const handleEventDrop = useCallback(async (info) => {
     try {
-      await axios.patch(`${API}/api/bookings/${info.event.id}`, { slot_time_iso: info.event.startStr });
+      await api.patch(`/api/bookings/${info.event.id}`, { slot_time_iso: info.event.startStr });
       onRefresh?.();
     } catch { info.revert(); }
   }, [onRefresh]);
@@ -450,7 +433,7 @@ export default function BayCalendar({ bookings = [], vehicles = [], onRefresh })
   const handleEventResize = useCallback(async (info) => {
     const dur = (info.event.end - info.event.start) / 3_600_000;
     try {
-      await axios.patch(`${API}/api/bookings/${info.event.id}`, { service_duration_hours: dur });
+      await api.patch(`/api/bookings/${info.event.id}`, { service_duration_hours: dur });
       onRefresh?.();
     } catch { info.revert(); }
   }, [onRefresh]);
@@ -459,6 +442,8 @@ export default function BayCalendar({ bookings = [], vehicles = [], onRefresh })
   const activeBayIdx = ALL_BAYS.findIndex(b => b.id === selectedBay);
 
   return (
+    <ResourcesContext.Provider value={resources}>
+      {resourceError && <p className="mb-3 text-xs text-red-500">{resourceError}</p>}
     <>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="space-y-5">
 
@@ -554,5 +539,6 @@ export default function BayCalendar({ bookings = [], vehicles = [], onRefresh })
         )}
       </AnimatePresence>
     </>
+    </ResourcesContext.Provider>
   );
 }

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
+import '../../core/services/api_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,19 +14,44 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _phone = TextEditingController();
   final _otp   = TextEditingController();
+  final _api = ApiService();
   bool _otpSent = false;
   bool _loading = false;
+  String? _error;
+  String? _devCode; // only returned by a development server (no SMS provider)
 
   Future<void> _sendOtp() async {
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() { _otpSent = true; _loading = false; });
+    final phone = _phone.text.trim();
+    if (phone.length < 10) {
+      setState(() => _error = 'Enter your 10-digit mobile number');
+      return;
+    }
+    setState(() { _loading = true; _error = null; });
+    try {
+      final r = await _api.sendOtp(phone);
+      setState(() { _otpSent = true; _devCode = r['debug_otp'] as String?; });
+    } on ApiException catch (e) {
+      setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   Future<void> _verify() async {
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) context.go('/home');
+    final code = _otp.text.trim();
+    if (code.length != 6) {
+      setState(() => _error = 'Enter the 6-digit code');
+      return;
+    }
+    setState(() { _loading = true; _error = null; });
+    try {
+      await _api.verifyOtp(_phone.text.trim(), code);
+      if (mounted) context.go('/home');
+    } on ApiException catch (e) {
+      setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -53,7 +79,15 @@ class _LoginScreenState extends State<LoginScreen> {
               // OTP field
               if (_otpSent) ...[
                 _Field(controller: _otp, hint: 'Enter OTP', type: TextInputType.number),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
+                if (_devCode != null)
+                  Text('Dev code: $_devCode', style: kCaption(color: colors.textSecondary)),
+                const SizedBox(height: 8),
+              ],
+
+              if (_error != null) ...[
+                Text(_error!, style: kBody(color: kDanger)),
+                const SizedBox(height: 12),
               ],
 
               // CTA

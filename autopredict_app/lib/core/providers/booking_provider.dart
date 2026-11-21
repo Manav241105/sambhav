@@ -19,8 +19,8 @@ class BookingNotifier extends StateNotifier<AsyncValue<List<Map<String, dynamic>
     }
   }
 
-  Future<Map<String, dynamic>> createBooking(Map<String, dynamic> body) async {
-    final result = await _api.createBooking(body);
+  Future<Map<String, dynamic>> createBooking({required String component, required String slotTimeIso}) async {
+    final result = await _api.createBooking(component: component, slotTimeIso: slotTimeIso);
     await _load();
     return result;
   }

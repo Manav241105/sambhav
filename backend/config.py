@@ -4,16 +4,19 @@ Multi-tenant, event-driven autonomous agent system
 """
 
 from typing import Dict, Optional
-from autogen_ext.models.openai import OpenAIChatCompletionClient
+
+from core.settings import get_settings
+
+_settings = get_settings()
 
 
 class SystemConfig:
     """System-wide configuration for multi-tenant autonomous system"""
     
     # Model Configuration
-    MODEL_NAME = "llama3:8b"
-    OLLAMA_BASE_URL = "http://localhost:11434/v1"
-    OLLAMA_API_KEY = "ollama"
+    MODEL_NAME = _settings.ollama_model
+    OLLAMA_BASE_URL = _settings.ollama_openai_url
+    OLLAMA_API_KEY = "ollama"  # Ollama ignores the key; the OpenAI client requires one
     
     # Agent Parameters
     AGENT_TEMPERATURE = 0.1
@@ -103,7 +106,7 @@ class SystemConfig:
         "max_response_words": 25,
         "enable_fillers": True,
         "latency_target_ms": 300,
-        "webhook_base_url": "https://your-ngrok-url.ngrok-free.app"  # Use ngrok for local development
+        "webhook_base_url": _settings.webhook_base_url,
     }
     
     # Sentiment Configuration (v4.3)
@@ -115,25 +118,28 @@ class SystemConfig:
         "min_frustration_count": 2
     }
     
-    # API Configuration (for real integrations)
+    # Channel credentials come from core.settings (environment / .env).
+    # Unset or placeholder values mean the channel runs in simulation mode.
     TWILIO_CONFIG = {
-        "account_sid": "YOUR_TWILIO_SID",  # Set via environment
-        "auth_token": "YOUR_TWILIO_TOKEN",
-        "from_number": "+1234567890"
+        "account_sid": _settings.twilio_account_sid,
+        "auth_token": _settings.twilio_auth_token,
+        "from_number": _settings.twilio_phone_number,
     }
-    
+
     WHATSAPP_CONFIG = {
-        "api_key": "YOUR_WHATSAPP_API_KEY",
-        "from_number": "whatsapp:+1234567890"
+        "api_key": _settings.twilio_auth_token,
+        "account_sid": _settings.twilio_account_sid,
+        "from_number": _settings.twilio_whatsapp_number,
     }
-    
+
     EMAIL_CONFIG = {
-        "smtp_server": "smtp.gmail.com",
-        "smtp_port": 587,
-        "from_email": "maintenance@example.com",
-        "password": "YOUR_EMAIL_PASSWORD"
+        "smtp_server": _settings.smtp_host,
+        "smtp_port": _settings.smtp_port,
+        "username": _settings.smtp_user,
+        "from_email": _settings.smtp_from,
+        "password": _settings.smtp_password,
     }
-    
+
     # Audit Configuration
     AUDIT_HASH_LENGTH = 16
 
@@ -184,7 +190,10 @@ class LlamaModelClient:
     @staticmethod
     def create_client(max_tokens: int = None, temperature: float = None):
         """Create OpenAI-compatible client for Ollama"""
-        
+        # Imported lazily so modules that only need constants (rule engine,
+        # simulator, tests) don't pull in the whole AutoGen stack.
+        from autogen_ext.models.openai import OpenAIChatCompletionClient
+
         client = OpenAIChatCompletionClient(
             model=SystemConfig.MODEL_NAME,
             base_url=SystemConfig.OLLAMA_BASE_URL,

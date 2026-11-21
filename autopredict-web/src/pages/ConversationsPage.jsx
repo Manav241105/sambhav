@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
+import api from '../lib/api';
 import {
     MessageSquare, Send, Search, Filter, ArrowUpRight, ArrowDownRight,
     Clock, ChevronRight, X, Bot, User, Wifi, RefreshCw, CheckCircle,
@@ -8,7 +8,6 @@ import {
 import DashboardLayout from '../components/DashboardLayout';
 import LiveEventBus from '../components/LiveEventBus';
 
-const API = 'http://localhost:8001';
 const spring = { type: 'spring', stiffness: 100, damping: 10 };
 
 /* ── Group conversation turns by vehicle ─────────── */
@@ -37,14 +36,6 @@ function groupByVehicle(turns) {
     });
 }
 
-const tooltipStyle = {
-    backgroundColor: '#1f2937',
-    border: '1px solid #374151',
-    borderRadius: '12px',
-    fontSize: 12,
-    color: '#fff',
-};
-
 export default function ConversationsPage() {
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -56,7 +47,7 @@ export default function ConversationsPage() {
 
     const fetchAll = useCallback(async () => {
         try {
-            const r = await axios.get(`${API}/api/conversations`);
+            const r = await api.get(`/api/conversations`);
             const turns = Array.isArray(r.data) ? r.data : [];
             setConversations(groupByVehicle(turns));
         } catch (err) {

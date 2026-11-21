@@ -1,0 +1,77 @@
+# AutoPredict local stack.
+#
+#   docker compose up -d --build                         # db, redis, api, web
+#   docker compose run --rm api python -m sim.build      # demo data (first time)
+#   open http://localhost:8080
+#
+# Ollama runs on the host by default (GPU access, models already pulled).
+# To run it in a container instead: `docker compose --profile ollama up -d`
+# and set OLLAMA_BASE_URL=http://ollama:11434 in .env.
+#
+# Credentials below are for local development only.
+
+name: autopredict
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-autopredict}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-autopredict}
+      POSTGRES_DB: ${POSTGRES_DB:-autopredict}
+    # Not published to the host; use `docker compose exec db psql -U autopredict`.
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-autopredict}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: ./backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-autopredict}:${POSTGRES_PASSWORD:-autopredict}@db:5432/${POSTGRES_DB:-autopredict}
+      REDIS_URL: redis://redis:6379/0
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      CORS_ORIGINS: http://localhost:8080,http://localhost:5173
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8001:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./autopredict-web
+      args:
+        VITE_API_URL: http://localhost:8001
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+  ollama:
+    image: ollama/ollama:0.12.3
+    profiles: ["ollama"]
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+
+volumes:
+  pgdata:
+  ollama:

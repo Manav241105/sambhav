@@ -1,0 +1,34 @@
+# Install once:  pip install pre-commit && pre-commit install
+# Run on demand: pre-commit run --all-files
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-yaml
+        exclude: ^autopredict_app/
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+        # Trained model artifacts are large on purpose; move them to Git LFS or object storage.
+        exclude: ^backend/ml_models/
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.6
+    hooks:
+      - id: ruff-check
+        args: ["--fix", "--config", "backend/pyproject.toml"]
+        # Only the Phase 0+ layers; legacy agent modules are linted as they get refactored.
+        files: ^backend/((api|core|db|domain|services|sim|tests)/.*|migrations/env\.py|webhook_server\.py|diagnosis_orchestrator\.py)$
+      - id: ruff-format
+        args: ["--config", "backend/pyproject.toml"]
+        files: ^backend/((api|core|db|domain|services|sim|tests)/.*|migrations/env\.py|webhook_server\.py|diagnosis_orchestrator\.py)$
+
+  - repo: local
+    hooks:
+      - id: eslint-web
+        name: eslint (web dashboard)
+        entry: npm --prefix autopredict-web run lint
+        language: system
+        pass_filenames: false
+        files: ^autopredict-web/src/
